@@ -3,20 +3,20 @@ package cn.sleepybear.fileconvert.logic;
 import cn.sleepybear.fileconvert.constants.GlobalVariable;
 import cn.sleepybear.fileconvert.convert.Constants;
 import cn.sleepybear.fileconvert.convert.Converter;
-import cn.sleepybear.fileconvert.convert.DbfRecord;
 import cn.sleepybear.fileconvert.dto.DataDto;
 import cn.sleepybear.fileconvert.dto.DataSimpleInfoDto;
-import cn.sleepybear.fileconvert.dto.DbfRecordInfoDto;
 import cn.sleepybear.fileconvert.dto.FileStreamDto;
 import cn.sleepybear.fileconvert.exception.FrontException;
 import cn.sleepybear.fileconvert.utils.CommonUtil;
-import cn.xiejx.cacher.cache.ExpireWayEnum;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Random;
 
 /**
@@ -26,22 +26,23 @@ import java.util.Random;
  * @date 2023/02/10 12:11
  */
 @Component
+@Slf4j
 public class UploadLogic {
     private static final Random RANDOM = new Random();
     public static final long DEFAULT_EXPIRE_MINUTES_TIME = 60;
     public static final long DEFAULT_EXPIRE_TIME = 1000L * DEFAULT_EXPIRE_MINUTES_TIME * 60;
 
     @Resource
-    private DbfLogic dbfLogic;
+    private ProcessDataLogic processDataLogic;
 
-    public DataSimpleInfoDto uploadDbf(MultipartFile file, String fileType, Boolean deleteAfterUpload, Long expireTimeMinutes) {
+    public String uploadFile(MultipartFile file, String fileType, Boolean deleteAfterUpload, Long expireTimeMinutes) {
         String originalFilename = file.getOriginalFilename();
         if (originalFilename == null || StringUtils.isBlank(originalFilename)) {
             originalFilename = "null";
         }
         String dot = ".";
-        if (StringUtils.isBlank(fileType) && fileType.contains(dot)) {
-            fileType = originalFilename.substring(originalFilename.lastIndexOf(dot), originalFilename.length() - 1);
+        if (StringUtils.isBlank(fileType) && StringUtils.contains(originalFilename, dot)) {
+            fileType = originalFilename.substring(originalFilename.lastIndexOf(dot));
         }
 
         Constants.FileTypeEnum fileTypeEnum = Constants.FileTypeEnum.getTypeByFilename(fileType);
@@ -50,38 +51,13 @@ public class UploadLogic {
         }
 
         FileStreamDto fileStreamDto = getInputStream(file, fileType, deleteAfterUpload);
-        InputStream inputStream = fileStreamDto.getByteArrayInputStream();
-
-        DataDto dataDto;
-        if (Constants.FileTypeEnum.DBF.equals(fileTypeEnum)) {
-            dataDto = dbfLogic.read(fileStreamDto);
+        DataDto dataDto = processDataLogic.processData(fileStreamDto);
+        if (dataDto != null) {
+            String id = dataDto.getId();
+            GlobalVariable.DATA_CACHER.set(id, dataDto);
+            return id;
         }
 
-        // 读取 dbf
-        DbfRecord dbfRecord = Converter.parseDbfRecord(inputStream);
-
-        long id = generateId();
-
-        dbfRecord.setName(originalFilename);
-        dbfRecord.setId(id);
-
-        if (expireTimeMinutes == null || expireTimeMinutes <= 0) {
-            expireTimeMinutes = DEFAULT_EXPIRE_MINUTES_TIME;
-        }
-        long expireTime = expireTimeMinutes * 1000L * 60;
-        if (expireTime > DEFAULT_EXPIRE_TIME * 24) {
-            expireTime = DEFAULT_EXPIRE_TIME;
-        }
-
-        long createTime = System.currentTimeMillis();
-        dbfRecord.setCreateTime(createTime);
-        dbfRecord.setExpireTime(expireTime);
-
-        // 存缓存
-        GlobalVariable.DBF_RECORD_CACHER.set(id, dbfRecord, expireTime, ExpireWayEnum.AFTER_ACCESS);
-
-        DbfRecordInfoDto dbfRecordInfoDto = new DbfRecordInfoDto(dbfRecord);
-        dbfRecordInfoDto.setFileDeleted(deleteAfterUpload);
         return null;
     }
 
@@ -93,8 +69,8 @@ public class UploadLogic {
         String originalFilename = file.getOriginalFilename();
         fileStreamDto.setOriginalFilename(originalFilename);
         fileStreamDto.setTempFilename(generateTempFilename(originalFilename, fileType));
-        fileStreamDto.setId(generateId());
         fileStreamDto.setFileType(fileType);
+        fileStreamDto.setCreateTime(System.currentTimeMillis());
 
         if (deleteAfterUpload) {
             // 上传后立即删除，那么不保留本地文件，直接流读取
@@ -115,6 +91,8 @@ public class UploadLogic {
                 throw new FrontException(e.getMessage());
             }
         }
+        fileStreamDto.setId(CommonUtil.bytesToMd5(fileStreamDto.getBytes()));
+        log.info("文件读取成功，id = {}，文件名 = {}，大小 = {}，是否保存 = {}", fileStreamDto.getId(), fileStreamDto.getOriginalFilename(), CommonUtil.getFileSize(file.getSize()), Boolean.FALSE.equals(deleteAfterUpload));
 
         return fileStreamDto;
     }

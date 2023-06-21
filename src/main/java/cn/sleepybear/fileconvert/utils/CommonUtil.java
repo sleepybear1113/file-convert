@@ -1,14 +1,16 @@
 package cn.sleepybear.fileconvert.utils;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -140,4 +142,50 @@ public class CommonUtil {
         }
     }
 
+    public static String bytesToMd5(byte[] bytes) {
+        if (bytes == null) {
+            return null;
+        }
+        try {
+            // 创建 MessageDigest 实例并指定算法为 MD5
+            MessageDigest md = MessageDigest.getInstance("MD5");
+
+            // 将字节数组传递给 MessageDigest 更新
+            md.update(bytes);
+
+            // 计算哈希值并获取结果字节数组
+            byte[] digest = md.digest();
+
+            // 将结果字节数组转换为十六进制字符串
+            StringBuilder sb = new StringBuilder();
+            for (byte b : digest) {
+                // 使用 "%02x" 格式将每个字节转换为两位十六进制数
+                sb.append(String.format("%02x", b));
+            }
+
+            return sb.toString();
+        } catch (NoSuchAlgorithmException e) {
+            System.out.println("无法找到 MD5 算法");
+            return null;
+        }
+    }
+
+    /**
+     * 文件大小转换方法，保留两位小数
+     */
+    public static String getFileSize(Long size) {
+        if (size == null) {
+            return "null";
+        }
+        if (size < 1024) {
+            return size + "B";
+        }
+        if (size < 1024 * 1024) {
+            return String.format("%.2fKB", size / 1024.0);
+        }
+        if (size < 1024 * 1024 * 1024) {
+            return String.format("%.2fMB", size / 1024.0 / 1024.0);
+        }
+        return String.format("%.2fGB", size / 1024.0 / 1024.0 / 1024.0);
+    }
 }

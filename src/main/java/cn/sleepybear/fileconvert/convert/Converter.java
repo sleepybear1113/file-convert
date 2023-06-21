@@ -13,7 +13,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,11 +31,11 @@ public class Converter {
     public static final String XLS = ".xls";
 
     public static DBFReader readDbf(String path) {
-        return readDbf(path, StandardCharsets.UTF_8);
+        return readDbf(path, Charset.forName("GBK"));
     }
 
     public static DBFReader readDbf(InputStream inputStream) {
-        return readDbf(inputStream, StandardCharsets.UTF_8);
+        return readDbf(inputStream, Charset.forName("GBK"));
     }
 
     public static DBFReader readDbf(InputStream inputStream, Charset charset) {
@@ -116,9 +115,12 @@ public class Converter {
         return parseDbfRecord(readDbf(inputStream));
     }
 
+    public static DbfRecord parseDbfRecord(InputStream inputStream, Charset charset) {
+        return parseDbfRecord(readDbf(inputStream, charset));
+    }
+
     public static DbfRecord parseDbfRecord(String path, Charset charset) {
-        DBFReader dbfReader = readDbf(path, charset);
-        return parseDbfRecord(dbfReader);
+        return parseDbfRecord(readDbf(path, charset));
     }
 
     public static DbfRecord parseDbfRecord(DBFReader dbfReader) {

@@ -7,7 +7,7 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * There is description
+ * 简单的信息，包括表头，文件名，文件类型，记录数
  *
  * @author sleepybear
  * @date 2023/02/10 10:03
@@ -22,8 +22,8 @@ public class DataSimpleInfoDto implements Serializable {
     private Integer type;
     private Integer recordNums;
     private Boolean fileDeleted;
-    private long createTime;
-    private long expireTime;
+    private Long createTime;
+    private Long expireTime;
 
     private List<DataCellDto> heads;
 }

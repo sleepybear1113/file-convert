@@ -50,7 +50,8 @@ public class DbfRecord {
         for (DBFField dbfField : dbfFields) {
             DataCellDto dataCellDto = new DataCellDto();
             dataCellDto.setValue(dbfField.getName());
-            dataCellDto.setDataType((int) dbfField.getType().getCode());
+            dataCellDto.setDataType(getType(dbfField.getType()).getType());
+            dataCellDto.setLength(dbfField.getLength());
             heads.add(dataCellDto);
         }
         return heads;
@@ -66,7 +67,8 @@ public class DbfRecord {
                 Object colData = getFieldData(i, dbfField, record);
                 DataCellDto dataCellDto = new DataCellDto();
                 dataCellDto.setValue(colData);
-                dataCellDto.setDataType((int) dbfField.getType().getCode());
+                dataCellDto.setDataType(getType(dbfField.getType()).getType());
+                dataCellDto.setLength(dbfField.getLength());
                 row.add(dataCellDto);
             }
             list.add(row);

@@ -23,6 +23,7 @@ public class GlobalVariable {
     }, new ThreadPoolExecutor.DiscardPolicy());
 
     public static final Cacher<Long, DbfRecord> DBF_RECORD_CACHER = new CacherBuilder<Long, DbfRecord>().scheduleName("DBF_RECORD_CACHER").delay(30, TimeUnit.SECONDS).build();
-    public static final Cacher<Long, DataDto> DATA_CACHER = new CacherBuilder<Long, DataDto>().scheduleName("DATA_CACHER").delay(30, TimeUnit.SECONDS).build();
+    public static final Cacher<String, DataDto> DATA_CACHER = new CacherBuilder<String, DataDto>().scheduleName("DATA_CACHER").delay(30, TimeUnit.SECONDS).build();
+    public static final Cacher<String, String> STRING_CACHER = new CacherBuilder<String, String>().scheduleName("STRING_CACHER").delay(30, TimeUnit.SECONDS).build();
 
 }

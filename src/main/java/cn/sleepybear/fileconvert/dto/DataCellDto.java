@@ -18,4 +18,5 @@ public class DataCellDto implements Serializable {
 
     private Object value;
     private Integer dataType;
+    private Integer length;
 }

@@ -1,10 +1,15 @@
 package cn.sleepybear.fileconvert.logic;
 
+import cn.sleepybear.fileconvert.convert.Constants;
 import cn.sleepybear.fileconvert.convert.Converter;
 import cn.sleepybear.fileconvert.convert.DbfRecord;
+import cn.sleepybear.fileconvert.dto.DataCellDto;
 import cn.sleepybear.fileconvert.dto.DataDto;
 import cn.sleepybear.fileconvert.dto.FileStreamDto;
 import org.springframework.stereotype.Component;
+
+import java.nio.charset.Charset;
+import java.util.List;
 
 /**
  * There is description
@@ -19,8 +24,20 @@ public class DbfLogic {
         if (fileStreamDto == null) {
             return null;
         }
-        DbfRecord dbfRecord = Converter.parseDbfRecord(fileStreamDto.getByteArrayInputStream());
+        DbfRecord dbfRecord = Converter.parseDbfRecord(fileStreamDto.getByteArrayInputStream(), Charset.forName("GBK"));
 
-        return null;
+        DataDto dataDto = new DataDto();
+        dataDto.setType(Constants.FileTypeEnum.DBF.getType());
+        dataDto.setFilename(fileStreamDto.getOriginalFilename());
+        dataDto.setId(fileStreamDto.getId());
+        dataDto.setCreateTime(fileStreamDto.getCreateTime());
+        dataDto.setExpireTime(fileStreamDto.getExpireTime());
+
+        List<List<DataCellDto>> dataList = dbfRecord.buildDataList();
+        dataDto.setDataList(dataList);
+
+        List<DataCellDto> headList = dbfRecord.buildHead();
+        dataDto.setHeads(headList);
+        return dataDto;
     }
 }

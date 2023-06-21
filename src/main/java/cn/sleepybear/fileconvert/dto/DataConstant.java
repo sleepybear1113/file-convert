@@ -9,13 +9,13 @@ package cn.sleepybear.fileconvert.dto;
 public class DataConstant {
     public enum DataType {
 
+        UNSUPPORTED("未支持的类型", -1),
         NUMBER("整数", 1),
         DECIMAL("小数", 2),
         DOUBLE("浮点数", 3),
         TEXT("文本", 4),
         BOOL("布尔", 5),
         DATE("日期", 6),
-        UNSUPPORTED("未支持的类型", 7),
         ;
         private final String typeName;
         private final Integer type;

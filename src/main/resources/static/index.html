@@ -45,31 +45,38 @@
     <input type="number" id="expireTime" class="num-input" v-model="expireTime">
     <span>分钟</span>
     <hr/>
-    <label for="hexId">文件编号：</label><input id="hexId" v-model="dbfRecordInfoDto.hexId">
+    <label for="dataId">文件编号：</label><input id="dataId" v-model="dataId">
     <hr/>
-    <span>文件名：{{dbfRecordInfoDto.name}}</span><span v-show="dbfRecordInfoDto.fileDeleted"> [已删除]</span>
+    <span>文件名：{{dataSimpleInfoDto.filename}}</span><span v-show="dataSimpleInfoDto.fileDeleted"> [已删除]</span>
     <br/>
-    <span>上传时间：{{parseTimeToStr(dbfRecordInfoDto.createTime)}}</span>
+    <span>上传时间：{{parseTimeToStr(dataSimpleInfoDto.createTime)}}</span>
     <br/>
-    <span>过期时间：{{parseTimeToStr(dbfRecordInfoDto.createTime + dbfRecordInfoDto.expireTime)}}</span>
+    <span>过期时间：{{parseTimeToStr(dataSimpleInfoDto.createTime + dataSimpleInfoDto.expireTime)}}</span>
     <br/>
-    <span>数据条数：{{dbfRecordInfoDto.recordNums}}</span>
+    <span>数据条数：{{dataSimpleInfoDto.recordNums}}</span>
     <br/>
 
-    <span v-show="dbfRecordInfoDto.dbfFields != null && dbfRecordInfoDto.dbfFields.length >= 0">共有{{dbfRecordInfoDto.dbfFields == null? "": dbfRecordInfoDto.dbfFields.length}}字段：</span>
-    <span v-for="col in dbfRecordInfoDto.dbfFields">
-        <span>{{col.name}} </span>
+    <span v-show="dataSimpleInfoDto.heads != null && dataSimpleInfoDto.heads.length >= 0">共有{{dataSimpleInfoDto.heads == null? "": dataSimpleInfoDto.heads.length}}字段：</span>
+    <span v-for="head in dataSimpleInfoDto.heads">
+        <span>{{head.value}} </span>
     </span>
     <hr/>
 
-    <label for="rowCount">数据条数</label><input type="number" id="rowCount" v-model="rowCount">
-    <button v-on:click="getRows()">获取数据</button>
+    <label for="rowCount">数据条数</label><input type="number" id="rowCount" v-model="rowCount" class="num-input">
+    <br/>
+    <button @click="changePage(-1)">上一页</button>
+    <button @click="changePage(1)">下一页</button>
+    <label>
+        页码
+        <input type="number" v-model="page" class="num-input">
+        <button @click="getDataList()">获取数据</button>
+    </label>
     <br/>
     <button v-on:click="exportExcel()">导出Excel</button>
     <input type="radio" name="choose" id="choose-all" value="true" v-model="chooseAll">
-    <label for="choose-all">全部</label>
+    <label for="choose-all">全部数据</label>
     <input type="radio" name="choose" id="choose-some" value="false" v-model="chooseAll">
-    <label for="choose-some">部分</label>
+    <label for="choose-some">自定义数量数据</label>
     <div v-show="chooseAll === false || chooseAll === 'false'">
         <label for="import-start">开始</label>
         <input id="import-start" type="number" v-model="exportStart" class="num-input">
@@ -78,22 +85,22 @@
     </div>
 
     <hr/>
-    <table v-show="dbfRowsDto.dbfFields != null && dbfRowsDto.dbfFields.length >= 0">
+    <table v-if="dataDto && dataDto.dataList">
         <thead>
         <tr>
             <td>序号</td>
-            <template v-for="dbfField in dbfRowsDto.dbfFields">
-                <td>{{dbfField.name}}</td>
+            <template v-for="head in dataDto.heads">
+                <td>{{head.value}}</td>
             </template>
         </tr>
         </thead>
 
         <tbody>
-        <template v-for="(row, index) in dbfRowsDto.rows">
+        <template v-for="(row, index) in dataDto.dataList">
             <tr>
-                <td>{{index + 1}}</td>
+                <td>{{(dataDto.pageInfo.page - 1) * dataDto.pageInfo.rowCount + index + 1}}</td>
                 <template v-for="col in row">
-                    <td>{{col}}</td>
+                    <td>{{col.value}}</td>
                 </template>
             </tr>
         </template>

@@ -1,8 +1,12 @@
 let app = new Vue({
     el: '#app',
     data: {
+        dataId: "",
         dbfRecordInfoDto: new DbfRecordInfoDto(),
+        dataSimpleInfoDto: new DataSimpleInfoDto(),
+        dataDto: new DataDto(),
         rowCount: 100,
+        page: 1,
         dbfRowsDto: new DbfRowsDto(),
         chooseAll: true,
         exportStart: 1,
@@ -15,10 +19,9 @@ let app = new Vue({
     },
     methods: {
         upload() {
-            let url = "upload/dbf";
+            let url = "upload/file";
             let input = document.getElementById("uploadFileInput");
             const file = input.files[0];
-            // 在这里进行一系列的校验
             const formData = new FormData();
             formData.append("file", file);
             formData.append("deleteAfterUpload", this.deleteAfterUpload);
@@ -26,37 +29,50 @@ let app = new Vue({
 
             this.status = "上传中，请稍后...";
 
-            this.dbfRecordInfoDto = new DbfRecordInfoDto();
+            this.dataSimpleInfoDto = new DataSimpleInfoDto();
             axios.post(url, formData, {
                 'Content-type': 'multipart/form-data'
             }).then(res => {
                 this.status = "";
-                let data = res.data.result;
-                this.dbfRecordInfoDto = new DbfRecordInfoDto(data);
-                this.exportEnd = this.dbfRecordInfoDto.recordNums;
+                this.dataId = res.data.result;
+                this.getHeads(this.dataId);
             }, err => {
                 // 出现错误时的处理
+            });
+        },
+        getHeads(dataId) {
+            let url = "data/getHeads";
+            axios.get(url, {params: {dataId: this.dataId}}).then((res) => {
+                this.dataSimpleInfoDto = new DataSimpleInfoDto(res.data.result);
+                this.exportEnd = this.dataSimpleInfoDto.recordNums;
             });
         },
         parseTimeToStr(t) {
             return parseTimeToStr(t);
         },
-        getRows() {
-            let url = "dbf/getRows";
-            let params = {params: {hexId: this.dbfRecordInfoDto.hexId, rowCount: this.rowCount}};
+        changePage(pages) {
+            this.page = pages + parseInt(this.page);
+            if (this.page <= 0) {
+                this.page = 1;
+            }
+            this.getDataList();
+        },
+        getDataList() {
+            let url = "data/getDataList";
+            let params = {params: {dataId: this.dataId, rowCount: this.rowCount, page: this.page}};
             axios.get(url, params).then((res) => {
                 let data = res.data.result;
-                let dbfRowsDto = new DbfRowsDto(data);
-                this.dbfRowsDto = dbfRowsDto;
-                console.log(dbfRowsDto);
+                this.dataDto = new DataDto(data);
+                this.exportStart = (this.dataDto.pageInfo.page - 1) * this.dataDto.pageInfo.rowCount + 1;
+                this.exportEnd = this.exportStart + this.dataDto.pageInfo.rowCount;
             });
         },
         exportExcel() {
-            let url = "dbf/exportToExcel";
+            let url = "export/exportToExcel";
             let params = {
                 params: {
-                    hexId: this.dbfRecordInfoDto.hexId,
-                    colIndexes: null,
+                    dataId: this.dataId,
+                    colIndexes: [],
                     fileName: null,
                     exportStart: this.exportStart,
                     exportEnd: this.exportEnd,
@@ -64,9 +80,10 @@ let app = new Vue({
                 }
             };
             axios.get(url, params).then((res) => {
-                let data = res.data.result;
-                if (data != null && data.length > 0) {
-                    let downloadUrl = window.location.href + data;
+                let exportKey = res.data.result;
+                if (exportKey != null && exportKey.length > 0) {
+
+                    let downloadUrl = "download/downloadFile?exportKey=" + exportKey;
                     console.log(downloadUrl);
                     window.open(downloadUrl, '_blank');
                 }

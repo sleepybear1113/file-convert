@@ -18,7 +18,7 @@ import jakarta.servlet.http.HttpServletRequest;
  * @author XJX
  * @date 2021/8/10 1:59
  */
-@RestControllerAdvice(basePackages = {"cn.sleepybear.dbfconvert.controller"})
+@RestControllerAdvice(basePackages = {"cn.sleepybear.fileconvert.controller"})
 @Slf4j
 public class ControllerReturnAdvice implements ResponseBodyAdvice<Object> {
     @Override

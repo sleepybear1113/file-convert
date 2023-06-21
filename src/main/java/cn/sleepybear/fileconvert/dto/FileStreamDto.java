@@ -20,14 +20,15 @@ public class FileStreamDto implements Serializable {
     @Serial
     private static final long serialVersionUID = 3960579933686268396L;
 
-    private Long id;
+    private String id;
     private String tempFilename;
     private String originalFilename;
-    private ByteArrayInputStream byteArrayInputStream;
+    private String fileType;
+    private byte[] bytes;
     private Boolean localFile;
+    private Long createTime;
     private Long expireTime;
     private String errorMessage;
-    private Constants.FileTypeEnum fileTypeEnum;
 
     public FileStreamDto() {
     }
@@ -37,22 +38,9 @@ public class FileStreamDto implements Serializable {
         if (StringUtils.isBlank(originalFilename)) {
             return;
         }
-        this.fileTypeEnum = Constants.FileTypeEnum.getTypeByFilename(originalFilename);
-    }
-
-    public void setFileType(String fileType) {
-        if (StringUtils.isBlank(fileType)) {
-            return;
-        }
-        this.fileTypeEnum = Constants.FileTypeEnum.getTypeByFilename(fileType);
-    }
-
-    public void setByteArrayInputStream(ByteArrayInputStream byteArrayInputStream) {
-        this.byteArrayInputStream = byteArrayInputStream;
     }
 
     public boolean setByteArrayInputStream(InputStream inputStream) {
-        this.byteArrayInputStream = null;
         if (inputStream == null) {
             log.info("input stream is null!");
             return false;
@@ -66,7 +54,7 @@ public class FileStreamDto implements Serializable {
                 b.write(buffer, 0, len);
             }
             b.flush();
-            this.byteArrayInputStream = new ByteArrayInputStream(b.toByteArray());
+            this.bytes = b.toByteArray();
             return true;
         } catch (IOException e) {
             log.warn(e.getMessage(), e);
@@ -96,5 +84,9 @@ public class FileStreamDto implements Serializable {
             this.errorMessage = e.getMessage();
             return false;
         }
+    }
+
+    public ByteArrayInputStream getByteArrayInputStream() {
+        return new ByteArrayInputStream(this.bytes);
     }
 }

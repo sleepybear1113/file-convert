@@ -1,5 +1,7 @@
 server:
   port: 14521
+  compression:
+    enabled: true
 
 spring:
   servlet:
