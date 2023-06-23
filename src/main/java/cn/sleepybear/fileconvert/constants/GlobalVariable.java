@@ -1,7 +1,7 @@
 package cn.sleepybear.fileconvert.constants;
 
-import cn.sleepybear.fileconvert.convert.DbfRecord;
 import cn.sleepybear.fileconvert.dto.DataDto;
+import cn.sleepybear.fileconvert.dto.DownloadInfoDto;
 import cn.xiejx.cacher.Cacher;
 import cn.xiejx.cacher.CacherBuilder;
 import lombok.extern.slf4j.Slf4j;
@@ -22,8 +22,7 @@ public class GlobalVariable {
         return t;
     }, new ThreadPoolExecutor.DiscardPolicy());
 
-    public static final Cacher<Long, DbfRecord> DBF_RECORD_CACHER = new CacherBuilder<Long, DbfRecord>().scheduleName("DBF_RECORD_CACHER").delay(30, TimeUnit.SECONDS).build();
     public static final Cacher<String, DataDto> DATA_CACHER = new CacherBuilder<String, DataDto>().scheduleName("DATA_CACHER").delay(30, TimeUnit.SECONDS).build();
-    public static final Cacher<String, String> STRING_CACHER = new CacherBuilder<String, String>().scheduleName("STRING_CACHER").delay(30, TimeUnit.SECONDS).build();
+    public static final Cacher<String, DownloadInfoDto> DOWNLOAD_INFO_CACHER = new CacherBuilder<String, DownloadInfoDto>().scheduleName("DOWNLOAD_INFO_CACHER").delay(30, TimeUnit.SECONDS).build();
 
 }

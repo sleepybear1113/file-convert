@@ -78,7 +78,7 @@ public class Constants {
                 return UNKNOWN;
             }
             for (FileTypeEnum fileTypeEnum : values()) {
-                if (fileTypeEnum.getSuffix().equals(type) || fileTypeEnum.getName().equals(type)) {
+                if (StringUtils.equalsIgnoreCase(fileTypeEnum.getSuffix(), type) || StringUtils.equalsIgnoreCase(fileTypeEnum.getName(), type)) {
                     return fileTypeEnum;
                 }
             }

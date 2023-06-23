@@ -74,6 +74,7 @@ class DataCellDto {
         this.value = props.value;
         this.dataType = props.dataType;
         this.length = props.length;
+        this.checked = true;
     }
 }
 

@@ -141,6 +141,18 @@ public class DbfRecord {
         };
     }
 
+    public static DBFDataType getDbfDataType(DataConstant.DataType dataType) {
+        return switch (dataType) {
+            case TEXT -> DBFDataType.CHARACTER;
+            case BOOL -> DBFDataType.LOGICAL;
+            case DATE -> DBFDataType.DATE;
+            case NUMBER -> DBFDataType.LONG;
+            case DOUBLE -> DBFDataType.BINARY;
+            case DECIMAL -> DBFDataType.NUMERIC;
+            default -> DBFDataType.UNKNOWN;
+        };
+    }
+
     public String getHexId() {
         return this.id == null ? null : Long.toHexString(this.id);
     }

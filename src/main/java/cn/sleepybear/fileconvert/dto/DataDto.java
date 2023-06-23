@@ -1,11 +1,14 @@
 package cn.sleepybear.fileconvert.dto;
 
 import lombok.Data;
+import org.apache.commons.collections4.CollectionUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * There is description
@@ -32,25 +35,25 @@ public class DataDto implements Serializable {
     private PageInfoDto pageInfo;
 
     public List<List<String>> getHeadNames() {
-        List<List<String>> res = new ArrayList<>();
-        for (DataCellDto dataCellDto : heads) {
-            List<String> headCol = new ArrayList<>();
-            headCol.add(dataCellDto.getValue().toString());
-            res.add(headCol);
+        List<List<String>> headNames = new ArrayList<>();
+        for (DataCellDto head : heads) {
+            List<String> headName = new ArrayList<>();
+            headName.add(head.getValue().toString());
+            headNames.add(headName);
         }
-        return res;
+        return headNames;
     }
 
     public List<List<Object>> getRawDataList() {
-        List<List<Object>> data = new ArrayList<>();
-        for (List<DataCellDto> dataCellDtos : dataList) {
-            List<Object> row = new ArrayList<>();
-            for (DataCellDto dataCellDto : dataCellDtos) {
-                row.add(dataCellDto.getValue());
+        List<List<Object>> rawDataList = new ArrayList<>();
+        for (List<DataCellDto> data : dataList) {
+            List<Object> rawData = new ArrayList<>();
+            for (DataCellDto dataCellDto : data) {
+                rawData.add(dataCellDto.getValue());
             }
-            data.add(row);
+            rawDataList.add(rawData);
         }
-        return data;
+        return rawDataList;
     }
 
     public DataSimpleInfoDto buildDataSimpleInfoDto() {
@@ -67,15 +70,51 @@ public class DataDto implements Serializable {
     }
 
     public DataDto copy() {
+        return copy(null);
+    }
+
+    public DataDto copy(List<Integer> colIndexes) {
         DataDto dataDto = new DataDto();
-        dataDto.setHeads(heads);
         dataDto.setFilename(filename);
         dataDto.setId(id);
         dataDto.setType(type);
         dataDto.setFileDeleted(fileDeleted);
         dataDto.setCreateTime(createTime);
         dataDto.setExpireTime(expireTime);
-        dataDto.setDataList(new ArrayList<>(dataList));
+
+        if (CollectionUtils.isNotEmpty(colIndexes)) {
+            colIndexes = new ArrayList<>(colIndexes);
+            colIndexes.removeIf(integer -> integer == null || integer < 0 || integer >= heads.size());
+        }
+
+        List<DataCellDto> heads = new ArrayList<>();
+        List<List<DataCellDto>> dataList = new ArrayList<>();
+        if (CollectionUtils.isEmpty(colIndexes)) {
+            dataDto.setHeads(new ArrayList<>(this.heads));
+            dataDto.setDataList(this.dataList.stream().map(ArrayList::new).collect(Collectors.toList()));
+            return dataDto;
+        } else {
+            // 保留的列的索引
+            colIndexes = new ArrayList<>(new HashSet<>(colIndexes));
+            colIndexes.sort(Integer::compareTo);
+
+            // 复制表头
+            for (Integer colIndex : colIndexes) {
+                heads.add(this.heads.get(colIndex));
+            }
+
+            // 复制数据
+            for (List<DataCellDto> dataCellDtos : this.dataList) {
+                List<DataCellDto> row = new ArrayList<>();
+                for (Integer colIndex : colIndexes) {
+                    row.add(dataCellDtos.get(colIndex));
+                }
+                dataList.add(row);
+            }
+        }
+
+        dataDto.setHeads(heads);
+        dataDto.setDataList(dataList);
         return dataDto;
     }
 

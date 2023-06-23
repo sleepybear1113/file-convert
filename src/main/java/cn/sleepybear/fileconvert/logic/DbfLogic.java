@@ -1,7 +1,7 @@
 package cn.sleepybear.fileconvert.logic;
 
 import cn.sleepybear.fileconvert.convert.Constants;
-import cn.sleepybear.fileconvert.convert.Converter;
+import cn.sleepybear.fileconvert.convert.DbfConverter;
 import cn.sleepybear.fileconvert.convert.DbfRecord;
 import cn.sleepybear.fileconvert.dto.DataCellDto;
 import cn.sleepybear.fileconvert.dto.DataDto;
@@ -24,7 +24,7 @@ public class DbfLogic {
         if (fileStreamDto == null) {
             return null;
         }
-        DbfRecord dbfRecord = Converter.parseDbfRecord(fileStreamDto.getByteArrayInputStream(), Charset.forName("GBK"));
+        DbfRecord dbfRecord = DbfConverter.parseDbfRecord(fileStreamDto.getByteArrayInputStream(), Charset.forName("GBK"));
 
         DataDto dataDto = new DataDto();
         dataDto.setType(Constants.FileTypeEnum.DBF.getType());

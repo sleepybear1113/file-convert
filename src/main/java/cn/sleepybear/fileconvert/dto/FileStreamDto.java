@@ -1,6 +1,5 @@
 package cn.sleepybear.fileconvert.dto;
 
-import cn.sleepybear.fileconvert.convert.Constants;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;

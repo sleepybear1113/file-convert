@@ -19,7 +19,7 @@ public class ProcessDataLogic {
     @Resource
     private DbfLogic dbfLogic;
 
-    public DataDto processData(FileStreamDto fileStreamDto) {
+    public DataDto processData(FileStreamDto fileStreamDto, Long expireTime) {
         if (fileStreamDto == null) {
             return null;
         }
@@ -30,6 +30,10 @@ public class ProcessDataLogic {
             throw new FrontException("未知文件类型，无法进行读取转换！");
         } else if (Constants.FileTypeEnum.DBF.equals(fileTypeEnum)) {
             dataDto = dbfLogic.read(fileStreamDto);
+        }
+
+        if (dataDto != null) {
+            dataDto.setExpireTime(expireTime);
         }
 
         return dataDto;

@@ -2,9 +2,8 @@ package cn.sleepybear.fileconvert.logic;
 
 import cn.sleepybear.fileconvert.constants.GlobalVariable;
 import cn.sleepybear.fileconvert.convert.Constants;
-import cn.sleepybear.fileconvert.convert.Converter;
+import cn.sleepybear.fileconvert.convert.DbfConverter;
 import cn.sleepybear.fileconvert.dto.DataDto;
-import cn.sleepybear.fileconvert.dto.DataSimpleInfoDto;
 import cn.sleepybear.fileconvert.dto.FileStreamDto;
 import cn.sleepybear.fileconvert.exception.FrontException;
 import cn.sleepybear.fileconvert.utils.CommonUtil;
@@ -29,13 +28,12 @@ import java.util.Random;
 @Slf4j
 public class UploadLogic {
     private static final Random RANDOM = new Random();
-    public static final long DEFAULT_EXPIRE_MINUTES_TIME = 60;
-    public static final long DEFAULT_EXPIRE_TIME = 1000L * DEFAULT_EXPIRE_MINUTES_TIME * 60;
+    public static final int DEFAULT_EXPIRE_MINUTES_TIME = 60;
 
     @Resource
     private ProcessDataLogic processDataLogic;
 
-    public String uploadFile(MultipartFile file, String fileType, Boolean deleteAfterUpload, Long expireTimeMinutes) {
+    public String uploadFile(MultipartFile file, String fileType, Boolean deleteAfterUpload, Integer expireTimeMinutes) {
         String originalFilename = file.getOriginalFilename();
         if (originalFilename == null || StringUtils.isBlank(originalFilename)) {
             originalFilename = "null";
@@ -45,16 +43,21 @@ public class UploadLogic {
             fileType = originalFilename.substring(originalFilename.lastIndexOf(dot));
         }
 
+        if (expireTimeMinutes == null || expireTimeMinutes <= 0) {
+            expireTimeMinutes = DEFAULT_EXPIRE_MINUTES_TIME;
+        }
+        long expireTime = expireTimeMinutes * 60 * 1000L;
+
         Constants.FileTypeEnum fileTypeEnum = Constants.FileTypeEnum.getTypeByFilename(fileType);
         if (Constants.FileTypeEnum.UNKNOWN.equals(fileTypeEnum)) {
             throw new FrontException("未知文件类型，无法进行读取转换！");
         }
 
         FileStreamDto fileStreamDto = getInputStream(file, fileType, deleteAfterUpload);
-        DataDto dataDto = processDataLogic.processData(fileStreamDto);
+        DataDto dataDto = processDataLogic.processData(fileStreamDto, expireTime);
         if (dataDto != null) {
             String id = dataDto.getId();
-            GlobalVariable.DATA_CACHER.set(id, dataDto);
+            GlobalVariable.DATA_CACHER.set(id, dataDto, expireTime);
             return id;
         }
 
@@ -116,6 +119,6 @@ public class UploadLogic {
             filenamePrefix = originalFilename.substring(0, lastIndexOf);
             suffix = originalFilename.substring(lastIndexOf);
         }
-        return Converter.DBF_TEMP_DIR + filenamePrefix + "-" + CommonUtil.getTime() + suffix;
+        return DbfConverter.DBF_TEMP_DIR + filenamePrefix + "-" + CommonUtil.getTime() + suffix;
     }
 }

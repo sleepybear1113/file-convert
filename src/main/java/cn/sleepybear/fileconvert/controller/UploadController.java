@@ -25,7 +25,7 @@ public class UploadController {
     private UploadLogic uploadLogic;
 
     @RequestMapping("/upload/file")
-    public ResultCode<String> upload(MultipartFile file, Boolean deleteAfterUpload, Long expireTimeMinutes) {
+    public ResultCode<String> upload(MultipartFile file, Boolean deleteAfterUpload, Integer expireTimeMinutes) {
         if (file == null || file.isEmpty()) {
             throw new FrontException("未选择文件！");
         }

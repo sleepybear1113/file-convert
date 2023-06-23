@@ -188,4 +188,11 @@ public class CommonUtil {
         }
         return String.format("%.2fGB", size / 1024.0 / 1024.0 / 1024.0);
     }
+
+    public static <T> List<T> toList(T[] arr) {
+        if (arr == null) {
+            return null;
+        }
+        return new ArrayList<>(List.of(arr));
+    }
 }
