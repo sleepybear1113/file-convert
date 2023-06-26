@@ -2,7 +2,7 @@ package cn.sleepybear.fileconvert.logic;
 
 import cn.sleepybear.fileconvert.config.MyConfig;
 import cn.sleepybear.fileconvert.constants.GlobalVariable;
-import cn.sleepybear.fileconvert.convert.DbfWriter;
+import cn.sleepybear.fileconvert.convert.dbf.DbfWriter;
 import cn.sleepybear.fileconvert.dto.DataCellDto;
 import cn.sleepybear.fileconvert.dto.DataDto;
 import cn.sleepybear.fileconvert.dto.DownloadInfoDto;

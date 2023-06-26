@@ -1,8 +1,8 @@
 package cn.sleepybear.fileconvert.logic;
 
 import cn.sleepybear.fileconvert.convert.Constants;
-import cn.sleepybear.fileconvert.convert.DbfConverter;
-import cn.sleepybear.fileconvert.convert.DbfRecord;
+import cn.sleepybear.fileconvert.convert.dbf.DbfConverter;
+import cn.sleepybear.fileconvert.convert.dbf.DbfRecord;
 import cn.sleepybear.fileconvert.dto.DataCellDto;
 import cn.sleepybear.fileconvert.dto.DataDto;
 import cn.sleepybear.fileconvert.dto.FileStreamDto;

@@ -1,6 +1,7 @@
 let app = new Vue({
     el: '#app',
     data: {
+        acceptFileTypes: ".xls,.xlsx,.dbf,.csv,.sql,.db,.sqlite",
         dataId: "",
         dbfRecordInfoDto: new DbfRecordInfoDto(),
         dataSimpleInfoDto: new DataSimpleInfoDto(),

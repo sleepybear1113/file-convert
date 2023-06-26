@@ -1,4 +1,4 @@
-package cn.sleepybear.fileconvert.convert;
+package cn.sleepybear.fileconvert.convert.dbf;
 
 import cn.sleepybear.fileconvert.exception.FrontException;
 import com.linuxense.javadbf.DBFField;

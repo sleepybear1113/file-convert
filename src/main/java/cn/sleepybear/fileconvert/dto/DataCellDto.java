@@ -4,6 +4,7 @@ import lombok.Data;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * There is description
@@ -19,4 +20,6 @@ public class DataCellDto implements Serializable {
     private Object value;
     private Integer dataType;
     private Integer length;
+
+    private List<Integer> acceptDataTypes;
 }

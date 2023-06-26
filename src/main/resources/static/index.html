@@ -32,7 +32,7 @@
 </style>
 <body>
 <div id="app">
-    <input id="uploadFileInput" type="file" name="file" value="请选择文件">
+    <input id="uploadFileInput" type="file" name="file" value="请选择文件" :accept="acceptFileTypes">
     <button v-on:click="upload()">上传</button>
     <span>{{status}}</span>
     <br/>

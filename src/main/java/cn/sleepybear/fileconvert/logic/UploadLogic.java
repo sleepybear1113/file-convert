@@ -2,7 +2,7 @@ package cn.sleepybear.fileconvert.logic;
 
 import cn.sleepybear.fileconvert.constants.GlobalVariable;
 import cn.sleepybear.fileconvert.convert.Constants;
-import cn.sleepybear.fileconvert.convert.DbfConverter;
+import cn.sleepybear.fileconvert.convert.dbf.DbfConverter;
 import cn.sleepybear.fileconvert.dto.DataDto;
 import cn.sleepybear.fileconvert.dto.FileStreamDto;
 import cn.sleepybear.fileconvert.exception.FrontException;

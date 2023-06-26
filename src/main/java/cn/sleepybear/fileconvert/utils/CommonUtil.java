@@ -195,4 +195,27 @@ public class CommonUtil {
         }
         return new ArrayList<>(List.of(arr));
     }
+
+    private static boolean isNotInteger(String s) {
+        try {
+            Integer.parseInt(s);
+            return false;
+        } catch (NumberFormatException e) {
+            return true;
+        }
+    }
+
+    private static boolean isNotDouble(String s) {
+        try {
+            Double.parseDouble(s);
+            return false;
+        } catch (NumberFormatException e) {
+            return true;
+        }
+    }
+
+    private static boolean isNotBoolean(String s) {
+        String lowerCase = s.toLowerCase();
+        return !"true".equals(lowerCase) && !"false".equals(lowerCase);
+    }
 }
