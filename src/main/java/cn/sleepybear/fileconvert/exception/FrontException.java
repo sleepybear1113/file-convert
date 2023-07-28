@@ -1,5 +1,7 @@
 package cn.sleepybear.fileconvert.exception;
 
+import lombok.Getter;
+
 import java.io.Serial;
 
 /**
@@ -8,6 +10,7 @@ import java.io.Serial;
  * @author sleepybear
  * @date 2022/09/18 20:04
  */
+@Getter
 public class FrontException extends RuntimeException {
     @Serial
     private static final long serialVersionUID = 2363333638031977753L;
@@ -29,7 +32,4 @@ public class FrontException extends RuntimeException {
         this.type = type;
     }
 
-    public Integer getType() {
-        return type;
-    }
 }

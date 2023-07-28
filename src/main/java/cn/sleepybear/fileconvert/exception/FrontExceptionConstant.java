@@ -1,5 +1,7 @@
 package cn.sleepybear.fileconvert.exception;
 
+import lombok.Getter;
+
 /**
  * There is description
  *
@@ -7,6 +9,7 @@ package cn.sleepybear.fileconvert.exception;
  * @date 2022/09/18 20:06
  */
 public class FrontExceptionConstant {
+    @Getter
     public enum TypeEnum {
         /**
          * 普通错误
@@ -24,8 +27,5 @@ public class FrontExceptionConstant {
             this.type = type;
         }
 
-        public Integer getType() {
-            return type;
-        }
     }
 }

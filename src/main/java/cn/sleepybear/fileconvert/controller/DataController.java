@@ -33,4 +33,10 @@ public class DataController {
         }
         return dataDto.subRowsDataDto(page, rowCount);
     }
+
+    @RequestMapping("/data/deleteByDataId")
+    public Boolean getDataList(String dataId) {
+        DataDto dataDto = GlobalVariable.DATA_CACHER.remove(dataId);
+        return dataDto != null;
+    }
 }

@@ -18,8 +18,15 @@ public class DataCellDto implements Serializable {
     private static final long serialVersionUID = 5059542280353771569L;
 
     private Object value;
+
+    /**
+     * @see cn.sleepybear.fileconvert.dto.DataConstant.DataType
+     */
     private Integer dataType;
+
     private Integer length;
+
+    private Boolean fixed;
 
     private List<Integer> acceptDataTypes;
 }

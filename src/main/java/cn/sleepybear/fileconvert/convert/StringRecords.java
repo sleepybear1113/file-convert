@@ -3,11 +3,13 @@ package cn.sleepybear.fileconvert.convert;
 import cn.sleepybear.fileconvert.dto.DataCellDto;
 import cn.sleepybear.fileconvert.dto.DataConstant;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * There is description
@@ -23,7 +25,13 @@ public class StringRecords {
     private List<DataCellDto> dataCellHeads;
     private List<List<DataCellDto>> dataCellRecords;
 
-    public void preBuildHeadInfo() {
+    public void build() {
+        preBuildHeadInfo();
+        preBuildDataInfo();
+        buildHeadTypes();
+    }
+
+    private void preBuildHeadInfo() {
         dataCellHeads = new ArrayList<>();
         for (String head : heads) {
             DataCellDto dataCellDto = new DataCellDto();
@@ -33,7 +41,7 @@ public class StringRecords {
         }
     }
 
-    public void preBuildDataInfo() {
+    private void preBuildDataInfo() {
         dataCellRecords = new ArrayList<>();
         for (List<String> record : records) {
             List<DataCellDto> dataCellRecord = new ArrayList<>();
@@ -51,22 +59,107 @@ public class StringRecords {
         }
     }
 
-    public void buildHeadTypes() {
-        List<Set<DataConstant.DataType>> headTypes = new ArrayList<>();
-        for (int i = 0; i < heads.size(); i++) {
-            headTypes.add(DataConstant.DataType.getDataTypes());
-        }
-        for (List<DataCellDto> dataCellRecord : dataCellRecords) {
-            for (int i = 0; i < dataCellRecord.size(); i++) {
-                DataCellDto dataCellDto = dataCellRecord.get(i);
-                judgeStrType(dataCellDto.getValue().toString());
-                Set<Integer> types = headTypes.get(i);
-                types.retainAll(dataCellDto.getAcceptDataTypes());
-            }
+    private void buildHeadTypes() {
+        List<DataConstant.DataType> columnTypes = getColumnTypes(records);
+        for (int i = 0; i < dataCellHeads.size(); i++) {
+            DataCellDto dataCellDto = dataCellHeads.get(i);
+            dataCellDto.setDataType(columnTypes.get(i).getType());
         }
     }
 
-    public void judgeStrType(String s) {
+    private static List<DataConstant.DataType> getColumnTypes(List<List<String>> dataList) {
+        List<DataConstant.DataType> columnTypes = new ArrayList<>();
+        for (int i = 0; i < dataList.get(0).size(); i++) {
+            final int index = i;
+            List<String> columnData = dataList.stream().map(row -> row.get(index)).collect(Collectors.toList());
+            DataConstant.DataType columnType = determineColumnType(columnData);
+            columnTypes.add(columnType);
+        }
 
+        return columnTypes;
+    }
+
+    private static DataConstant.DataType determineColumnType(List<String> columnData) {
+        // 判断列数据是否为空
+        if (columnData.isEmpty()) {
+            return DataConstant.DataType.UNSUPPORTED;
+        }
+
+        // 检查是否为 null
+        boolean isNull = columnData.stream().allMatch(StringUtils::isEmpty);
+        if (isNull) {
+            return DataConstant.DataType.TEXT;
+        }
+
+        // 检查是否为数字类型
+        boolean isNumber = columnData.stream().allMatch(s -> {
+            try {
+                if (StringUtils.isNotEmpty(s)) {
+                    Long.parseLong(s);
+                }
+                return true;
+            } catch (NumberFormatException e) {
+                return false;
+            }
+        });
+        if (isNumber) {
+            return DataConstant.DataType.NUMBER;
+        }
+
+        // 检查是否为小数类型
+        boolean isDecimal = columnData.stream().allMatch(s -> StringUtils.isEmpty(s) || s.matches("-?\\d+\\.\\d+"));
+        if (isDecimal) {
+            return DataConstant.DataType.DECIMAL;
+        }
+
+        // 检查是否为双精度类型
+        boolean isDouble = columnData.stream().allMatch(s -> {
+            try {
+                if (StringUtils.isNotEmpty(s)) {
+                    Double.parseDouble(s);
+                }
+                return true;
+            } catch (NumberFormatException e) {
+                return false;
+            }
+        });
+        if (isDouble) {
+            return DataConstant.DataType.DOUBLE;
+        }
+
+        // 检查是否为布尔类型
+        boolean isBoolean = columnData.stream().allMatch(s -> "true".equalsIgnoreCase(s) || "false".equalsIgnoreCase(s));
+        if (isBoolean) {
+            return DataConstant.DataType.BOOL;
+        }
+
+        // 检查是否为日期类型
+        boolean isDate = columnData.stream().allMatch(s -> {
+            try {
+                if (StringUtils.isNotEmpty(s)) {
+                    LocalDate parse = LocalDate.parse(s);
+                }
+                return true;
+            } catch (DateTimeParseException e) {
+                return false;
+            }
+        });
+        if (isDate) {
+            return DataConstant.DataType.DATE;
+        }
+
+        // 默认类型为文本类型
+        return DataConstant.DataType.TEXT;
+    }
+
+    // Calculate the best width for VARCHAR column type based on the longest value
+    private static int calculateStringWidth(List<String> columnData) {
+        int maxWidth = columnData.stream().mapToInt(String::length).max().orElse(255);
+
+        // Adjust the maximum width to fit the database-specific limits
+        // Example: MySQL VARCHAR has a limit of 65,535 characters
+        int dbMaxWidth = 65535;
+
+        return Math.min(maxWidth, dbMaxWidth);
     }
 }

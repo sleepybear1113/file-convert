@@ -1,6 +1,7 @@
 package cn.sleepybear.fileconvert.dto;
 
-import java.util.Arrays;
+import lombok.Getter;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -12,6 +13,7 @@ import java.util.Set;
  * @date 2023/04/06 15:52
  */
 public class DataConstant {
+    @Getter
     public enum DataType {
 
         UNSUPPORTED("未支持的类型", -1),
@@ -28,14 +30,6 @@ public class DataConstant {
         DataType(String typeName, Integer type) {
             this.typeName = typeName;
             this.type = type;
-        }
-
-        public String getTypeName() {
-            return typeName;
-        }
-
-        public Integer getType() {
-            return type;
         }
 
         public static DataType getDataType(Integer type) {

@@ -45,6 +45,7 @@
     <span>分钟</span>
     <hr/>
     <label for="dataId">文件编号：</label><input id="dataId" v-model="dataId" style="width: 250px">
+    <button @click="deleteByDataId">删除</button>
     <hr/>
     <span>　文件名：{{dataSimpleInfoDto.filename}}</span><span v-show="dataSimpleInfoDto.fileDeleted"> [已删除]</span>
     <br/>
@@ -88,15 +89,27 @@
     <hr/>
     <table v-if="dataDto && dataDto.dataList">
         <thead>
+
+        <!--选择表头 checkBox-->
         <tr>
             <td></td>
             <template v-for="(head, index) in dataDto.heads">
                 <td><label><input type="checkbox" v-model="head.checked"></label></td>
             </template>
         </tr>
+
+        <!--原始表头字段-->
         <tr>
-            <td>序号</td>
+            <td>原始表头</td>
             <template v-for="head in dataDto.heads">
+                <td>{{head.value}}</td>
+            </template>
+        </tr>
+
+        <!--处理表头字段-->
+        <tr>
+            <td>处理表头</td>
+            <template v-for="head in dataDto.fixedHeads">
                 <td>{{head.value}}</td>
             </template>
         </tr>

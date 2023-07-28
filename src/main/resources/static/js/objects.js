@@ -54,10 +54,12 @@ class DataDto {
         this.recordNums = props.recordNums;
         this.createTime = props.createTime;
         this.expireTime = props.expireTime;
+        this.hasFixedHead = props.hasFixedHead;
 
         this.pageInfo = new PageInfo(props.pageInfo);
 
         this.heads = props.heads.map((item) => new DataCellDto(item));
+        this.fixedHeads = props.fixedHeads.map((item) => new DataCellDto(item));
         this.dataList = props.dataList.map((item) => item.map((item2) => new DataCellDto(item2)));
     }
 }
@@ -74,6 +76,7 @@ class DataCellDto {
         this.value = props.value;
         this.dataType = props.dataType;
         this.length = props.length;
+        this.fixed = props.fixed;
         this.checked = true;
     }
 }

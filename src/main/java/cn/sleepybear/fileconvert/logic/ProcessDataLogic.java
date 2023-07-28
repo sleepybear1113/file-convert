@@ -18,6 +18,8 @@ public class ProcessDataLogic {
 
     @Resource
     private DbfLogic dbfLogic;
+    @Resource
+    private CsvLogic csvLogic;
 
     public DataDto processData(FileStreamDto fileStreamDto, Long expireTime) {
         if (fileStreamDto == null) {
@@ -35,7 +37,7 @@ public class ProcessDataLogic {
         } else if (Constants.FileTypeEnum.EXCEL_XLSX.equals(fileTypeEnum)) {
             // TODO
         } else if (Constants.FileTypeEnum.CSV.equals(fileTypeEnum)) {
-            // TODO
+            dataDto = csvLogic.read(fileStreamDto);
         } else if (Constants.FileTypeEnum.SQL_MYSQL.equals(fileTypeEnum)) {
             // TODO
         } else if (Constants.FileTypeEnum.SQL_SQLITE.equals(fileTypeEnum)) {

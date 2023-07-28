@@ -2,7 +2,6 @@ package cn.sleepybear.fileconvert.dto;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
@@ -34,9 +33,6 @@ public class FileStreamDto implements Serializable {
 
     public void setOriginalFilename(String originalFilename) {
         this.originalFilename = originalFilename;
-        if (StringUtils.isBlank(originalFilename)) {
-            return;
-        }
     }
 
     public boolean setByteArrayInputStream(InputStream inputStream) {

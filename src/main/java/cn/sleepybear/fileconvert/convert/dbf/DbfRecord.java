@@ -146,9 +146,8 @@ public class DbfRecord {
             case TEXT -> DBFDataType.CHARACTER;
             case BOOL -> DBFDataType.LOGICAL;
             case DATE -> DBFDataType.DATE;
-            case NUMBER -> DBFDataType.LONG;
+            case NUMBER, DECIMAL -> DBFDataType.NUMERIC;
             case DOUBLE -> DBFDataType.BINARY;
-            case DECIMAL -> DBFDataType.NUMERIC;
             default -> DBFDataType.UNKNOWN;
         };
     }

@@ -38,6 +38,7 @@ public class DbfLogic {
 
         List<DataCellDto> headList = dbfRecord.buildHead();
         dataDto.setHeads(headList);
+        dataDto.buildFixedHeads();
         return dataDto;
     }
 }

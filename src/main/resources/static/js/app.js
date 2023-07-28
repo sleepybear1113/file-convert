@@ -82,6 +82,21 @@ let app = new Vue({
                 this.dataLoading = false;
             });
         },
+        deleteByDataId() {
+            let url = "data/deleteByDataId";
+            let params = {params: {dataId: this.dataId}};
+            axios.get(url, params).then((res) => {
+                let data = res.data.result;
+                this.dataId = "";
+                this.dataDto = new DataDto();
+                this.dataSimpleInfoDto = new DataSimpleInfoDto();
+                if (data) {
+                    alert("删除成功！");
+                } else {
+                    alert("删除失败！找不到该数据或者已经删除！");
+                }
+            });
+        },
         changeExportStatus(index, status) {
             this.exportStatusList[index] = status;
             this.$forceUpdate();

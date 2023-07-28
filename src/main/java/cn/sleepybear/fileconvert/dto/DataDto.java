@@ -5,9 +5,7 @@ import org.apache.commons.collections4.CollectionUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -21,6 +19,9 @@ public class DataDto implements Serializable {
     @Serial
     private static final long serialVersionUID = 5059542280353771569L;
 
+    public static final String NUMBER_START_REGEX = "\\d.*";
+    public static final String REPLACE_CHAR_REGEX = "[^\\p{L}\\p{N}_]";
+
     private String id;
     private String filename;
     private Integer type;
@@ -29,6 +30,8 @@ public class DataDto implements Serializable {
     private Long expireTime;
 
     private List<DataCellDto> heads;
+    private List<DataCellDto> fixedHeads;
+    private Boolean hasFixedHeader;
 
     private List<List<DataCellDto>> dataList;
 
@@ -69,6 +72,66 @@ public class DataDto implements Serializable {
         return dataSimpleInfoDto;
     }
 
+    public void buildFixedHeads() {
+        if (CollectionUtils.isEmpty(heads)) {
+            return;
+        }
+
+        // 合法的表头
+        List<String> fixedHeadNames = new ArrayList<>();
+        for (DataCellDto head : heads) {
+            String string = head.getValue().toString();
+
+            // 判断是否是合法的表头，如果不合法，那么去掉，并且如果去掉后首位不是字母，那么在前面加上下划线
+            if (!string.matches(REPLACE_CHAR_REGEX)) {
+                string = string.replaceAll(REPLACE_CHAR_REGEX, "");
+                if (string.matches(NUMBER_START_REGEX)) {
+                    string = "_" + string;
+                }
+                fixedHeadNames.add(string);
+            } else {
+                fixedHeadNames.add(null);
+            }
+        }
+
+        // 将重复的表头加上后缀序号
+        Map<String, Integer> fixedNameCount = new HashMap<>();
+        for (int i = 0; i < fixedHeadNames.size(); i++) {
+            String fixedHeadName = fixedHeadNames.get(i);
+            if (fixedHeadName == null) {
+                continue;
+            }
+            Integer count = fixedNameCount.get(fixedHeadName);
+            if (count == null) {
+                count = 0;
+            } else {
+                count++;
+                fixedHeadNames.set(i, fixedHeadName + "_" + count);
+            }
+            fixedNameCount.put(fixedHeadName, count);
+        }
+
+        fixedHeads = new ArrayList<>();
+        for (int i = 0; i < fixedHeadNames.size(); i++) {
+            DataCellDto head = heads.get(i);
+            DataCellDto fixedHead = new DataCellDto();
+            fixedHead.setDataType(head.getDataType());
+            fixedHead.setLength(head.getLength());
+            fixedHead.setAcceptDataTypes(head.getAcceptDataTypes());
+
+            if (fixedHeadNames.get(i) != null) {
+                fixedHead.setValue(fixedHeadNames.get(i));
+                fixedHead.setFixed(true);
+                hasFixedHeader = true;
+            } else {
+                fixedHead.setValue(head.getValue());
+                fixedHead.setFixed(false);
+            }
+
+            fixedHeads.add(fixedHead);
+        }
+    }
+
     public DataDto copy() {
         return copy(null);
     }
@@ -92,6 +155,7 @@ public class DataDto implements Serializable {
         if (CollectionUtils.isEmpty(colIndexes)) {
             dataDto.setHeads(new ArrayList<>(this.heads));
             dataDto.setDataList(this.dataList.stream().map(ArrayList::new).collect(Collectors.toList()));
+            dataDto.buildFixedHeads();
             return dataDto;
         } else {
             // 保留的列的索引
@@ -115,6 +179,7 @@ public class DataDto implements Serializable {
 
         dataDto.setHeads(heads);
         dataDto.setDataList(dataList);
+        dataDto.buildFixedHeads();
         return dataDto;
     }
 

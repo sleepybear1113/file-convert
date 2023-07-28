@@ -25,6 +25,7 @@ public class CsvLogic {
         if (stringRecords == null) {
             return null;
         }
+        stringRecords.build();
 
         DataDto dataDto = new DataDto();
         dataDto.setType(Constants.FileTypeEnum.CSV.getType());
@@ -33,6 +34,10 @@ public class CsvLogic {
         dataDto.setCreateTime(fileStreamDto.getCreateTime());
         dataDto.setExpireTime(fileStreamDto.getExpireTime());
 
-        dataDto.setHeads(stringRecords.getHeads());
+        dataDto.setHeads(stringRecords.getDataCellHeads());
+        dataDto.setDataList(stringRecords.getDataCellRecords());
+
+        dataDto.buildFixedHeads();
+        return dataDto;
     }
 }

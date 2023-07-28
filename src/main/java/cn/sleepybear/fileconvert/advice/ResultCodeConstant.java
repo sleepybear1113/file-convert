@@ -1,10 +1,13 @@
 package cn.sleepybear.fileconvert.advice;
 
+import lombok.Getter;
+
 /**
  * @author XJX
  * @date 2021/8/10 0:38
  */
 public class ResultCodeConstant {
+    @Getter
     public enum CodeEnum {
         /**
          * 正常情况下的返回值
@@ -25,8 +28,5 @@ public class ResultCodeConstant {
             this.code = code;
         }
 
-        public Integer getCode() {
-            return code;
-        }
     }
 }

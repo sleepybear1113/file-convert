@@ -1,5 +1,6 @@
 package cn.sleepybear.fileconvert.convert;
 
+import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -9,6 +10,7 @@ import org.apache.commons.lang3.StringUtils;
  * @date 2023/02/10 15:38
  */
 public class Constants {
+    @Getter
     public enum DataTypeEnum {
         /**
          * 类型
@@ -24,15 +26,9 @@ public class Constants {
             this.name = name;
         }
 
-        public Integer getType() {
-            return type;
-        }
-
-        public String getName() {
-            return name;
-        }
     }
 
+    @Getter
     public enum FileTypeEnum {
         /**
          * 55
@@ -55,22 +51,6 @@ public class Constants {
             this.suffix = suffix;
             this.name = name;
             this.description = description;
-        }
-
-        public Integer getType() {
-            return type;
-        }
-
-        public String getSuffix() {
-            return suffix;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getDescription() {
-            return description;
         }
 
         public static FileTypeEnum getTypeByFilename(String type) {
