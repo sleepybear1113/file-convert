@@ -12,9 +12,15 @@ import jxl.WorkbookSettings;
 import jxl.read.biff.BiffException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.poi.poifs.common.POIFSConstants;
+import org.apache.poi.poifs.filesystem.FileMagic;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
+import org.apache.poi.util.IOUtils;
 
 import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -97,7 +103,16 @@ public class ExcelReader {
     public static Boolean isExcel95(FileStreamDto fileStreamDto) {
         try {
             ByteArrayInputStream byteArrayInputStream = fileStreamDto.getByteArrayInputStream();
-            boolean book = new POIFSFileSystem(byteArrayInputStream).getRoot().hasEntry("Book");
+            ByteBuffer headerBuffer = ByteBuffer.allocate(POIFSConstants.SMALLER_BIG_BLOCK_SIZE);
+            IOUtils.readFully(Channels.newChannel(byteArrayInputStream), headerBuffer);
+            byteArrayInputStream.close();
+            FileMagic fm = FileMagic.valueOf(IOUtils.toByteArray(headerBuffer, POIFSConstants.SMALLER_BIG_BLOCK_SIZE));
+            if (!fm.equals(FileMagic.OLE2)) {
+                return false;
+            }
+
+            byteArrayInputStream = fileStreamDto.getByteArrayInputStream();
+            boolean book = new POIFSFileSystem(fileStreamDto.getByteArrayInputStream()).getRoot().hasEntry("Book");
             byteArrayInputStream.close();
             return book;
         } catch (IOException e) {
