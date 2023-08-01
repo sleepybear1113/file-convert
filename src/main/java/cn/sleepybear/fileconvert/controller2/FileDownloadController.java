@@ -9,6 +9,7 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.File;
@@ -24,6 +25,7 @@ import java.nio.charset.StandardCharsets;
  * @date 2023/06/21 16:25
  */
 @RestController
+@RequestMapping(value = GlobalVariable.PREFIX)
 public class FileDownloadController {
     @GetMapping("/download/downloadFile")
     public ResponseEntity<Resource> downloadFile(String exportKey, HttpServletResponse response) {

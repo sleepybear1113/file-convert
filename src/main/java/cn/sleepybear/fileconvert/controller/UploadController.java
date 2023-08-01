@@ -1,6 +1,7 @@
 package cn.sleepybear.fileconvert.controller;
 
 import cn.sleepybear.fileconvert.advice.ResultCode;
+import cn.sleepybear.fileconvert.constants.GlobalVariable;
 import cn.sleepybear.fileconvert.exception.FrontException;
 import cn.sleepybear.fileconvert.logic.UploadLogic;
 import jakarta.annotation.Resource;
@@ -16,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
  * @date 2022/10/25 15:45
  */
 @RestController
+@RequestMapping(value = GlobalVariable.PREFIX)
 @Slf4j
 public class UploadController {
     public static final long DEFAULT_EXPIRE_MINUTES_TIME = 60;

@@ -23,7 +23,7 @@ let app = new Vue({
     },
     methods: {
         upload() {
-            let url = "upload/file";
+            let url = "/upload/file";
             let input = document.getElementById("uploadFileInput");
             const file = input.files[0];
             const formData = new FormData();
@@ -46,7 +46,7 @@ let app = new Vue({
             });
         },
         getHeads(dataId) {
-            let url = "data/getHeads";
+            let url = "/data/getHeads";
             axios.get(url, {params: {dataId: this.dataId}}).then((res) => {
                 this.dataSimpleInfoDto = new DataSimpleInfoDto(res.data.result);
                 this.exportEnd = this.dataSimpleInfoDto.recordNums;
@@ -67,7 +67,7 @@ let app = new Vue({
             this.getDataList();
         },
         getDataList() {
-            let url = "data/getDataList";
+            let url = "/data/getDataList";
             let params = {params: {dataId: this.dataId, rowCount: this.rowCount, page: this.page}};
             this.dataLoading = true;
             axios.get(url, params).then((res) => {
@@ -83,7 +83,7 @@ let app = new Vue({
             });
         },
         deleteByDataId() {
-            let url = "data/deleteByDataId";
+            let url = "/data/deleteByDataId";
             let params = {params: {dataId: this.dataId}};
             axios.get(url, params).then((res) => {
                 let data = res.data.result;
@@ -110,11 +110,11 @@ let app = new Vue({
             }
         },
         exportExcel(type) {
-            let url = "export/exportToExcel";
+            let url = "/export/exportToExcel";
             this.exportToFile(url, type);
         },
         exportDbf(type) {
-            let url = "export/exportToDbf";
+            let url = "/export/exportToDbf";
             this.exportToFile(url, type);
         },
         exportToFile(url, type) {
@@ -132,7 +132,7 @@ let app = new Vue({
                 let exportKey = res.data.result;
                 if (exportKey != null && exportKey.length > 0) {
 
-                    let downloadUrl = "download/downloadFile?exportKey=" + exportKey;
+                    let downloadUrl = axios.defaults.baseURL + "/download/downloadFile?exportKey=" + exportKey;
                     console.log(downloadUrl);
                     window.open(downloadUrl, '_blank');
                 }

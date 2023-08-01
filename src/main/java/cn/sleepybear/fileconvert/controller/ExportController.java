@@ -1,6 +1,7 @@
 package cn.sleepybear.fileconvert.controller;
 
 import cn.sleepybear.fileconvert.advice.ResultCode;
+import cn.sleepybear.fileconvert.constants.GlobalVariable;
 import cn.sleepybear.fileconvert.logic.ExportLogic;
 import cn.sleepybear.fileconvert.utils.CommonUtil;
 import jakarta.annotation.Resource;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @date 2023/06/21 14:39
  */
 @RestController
+@RequestMapping(value = GlobalVariable.PREFIX)
 public class ExportController {
 
     @Resource

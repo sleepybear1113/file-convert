@@ -42,4 +42,6 @@ axios.interceptors.request.use(
     }, function (error) {
         return Promise.reject(error)
     },
-)
+);
+
+axios.defaults.baseURL = "/api-file-convert";

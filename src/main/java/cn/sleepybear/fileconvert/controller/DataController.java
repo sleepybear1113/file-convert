@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @date 2023/06/21 12:02
  */
 @RestController
+@RequestMapping(value = GlobalVariable.PREFIX)
 public class DataController {
 
     @RequestMapping("/data/getHeads")

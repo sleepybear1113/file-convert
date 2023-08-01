@@ -15,6 +15,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 public class GlobalVariable {
+    public static final String PREFIX = "/api-file-convert";
 
     public static final ThreadPoolExecutor THREAD_POOL = new ThreadPoolExecutor(10, 100, 10, TimeUnit.SECONDS, new SynchronousQueue<>(), r -> {
         Thread t = new Thread(r);
