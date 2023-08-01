@@ -41,7 +41,8 @@ public class DataDto implements Serializable {
         List<List<String>> headNames = new ArrayList<>();
         for (DataCellDto head : heads) {
             List<String> headName = new ArrayList<>();
-            headName.add(head.getValue().toString());
+            Object value = head.getValue();
+            headName.add(value == null ? null : value.toString());
             headNames.add(headName);
         }
         return headNames;
@@ -80,15 +81,18 @@ public class DataDto implements Serializable {
         // 合法的表头
         List<String> fixedHeadNames = new ArrayList<>();
         for (DataCellDto head : heads) {
-            String string = head.getValue().toString();
+            Object value = head.getValue();
+            String string = value == null ? null : value.toString();
 
             // 判断是否是合法的表头，如果不合法，那么去掉，并且如果去掉后首位不是字母，那么在前面加上下划线
-            if (!string.matches(REPLACE_CHAR_REGEX)) {
+            if (string != null && !string.matches(REPLACE_CHAR_REGEX)) {
                 string = string.replaceAll(REPLACE_CHAR_REGEX, "");
                 if (string.matches(NUMBER_START_REGEX)) {
                     string = "_" + string;
                 }
                 fixedHeadNames.add(string);
+            } else if (string == null) {
+                fixedHeadNames.add("_");
             } else {
                 fixedHeadNames.add(null);
             }

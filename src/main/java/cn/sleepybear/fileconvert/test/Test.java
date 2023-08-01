@@ -6,9 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * There is description
@@ -19,7 +17,47 @@ import java.util.Set;
 public class Test {
     public static void main(String[] args) throws Exception {
         String s = "111.11";
-        System.out.println(s.substring(s.lastIndexOf("."), s.length() - 1));
+        testListFilter();
+        testListFilter();
+        testListFilter();
+    }
+
+    public static void testListFilter() {
+        List<Integer> list = generateRandomList(10000000, 1, 10000);
+
+        // 使用普通for循环筛选
+        long startTime = System.currentTimeMillis();
+        List<Integer> filteredList1 = new ArrayList<>();
+        for (Integer num : list) {
+            if (num < 500) {
+                filteredList1.add(num);
+            }
+        }
+        long endTime = System.currentTimeMillis();
+        long elapsedTime1 = endTime - startTime;
+
+        // 使用并行流操作筛选
+        startTime = System.currentTimeMillis();
+        List<Integer> filteredList2 = list.parallelStream()
+                .filter(num -> num < 500)
+                .toList();
+        endTime = System.currentTimeMillis();
+        long elapsedTime2 = endTime - startTime;
+
+        // 打印结果
+        System.out.println("普通for循环耗时: " + elapsedTime1 + " 毫秒 - " + filteredList1.size());
+        System.out.println("并行流操作耗时: " + elapsedTime2 + " 毫秒 - " + filteredList2.size());
+    }
+
+    // 生成随机数列表
+    private static List<Integer> generateRandomList(int size, int min, int max) {
+        List<Integer> list = new ArrayList<>();
+        Random random = new Random();
+        for (int i = 0; i < size; i++) {
+            int num = random.nextInt(max - min + 1) + min;
+            list.add(num);
+        }
+        return list;
     }
 
     public static void checkPic() throws IOException {

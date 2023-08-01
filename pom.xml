@@ -51,6 +51,15 @@
             <artifactId>easyexcel</artifactId>
             <version>3.3.2</version>
         </dependency>
+        <!-- 修改过了的 jar，将 jxl.read.biff.WriteAccessRecord 多加了 data[1] > data.length - 1 判断 -->
+        <dependency>
+            <groupId>net.sourceforge.jexcelapi</groupId>
+            <artifactId>jxl</artifactId>
+            <version>2.6.12</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/libs/jxl-fixed-2.6.12.jar</systemPath>
+        </dependency>
+
         <dependency>
             <groupId>com.github.albfernandez</groupId>
             <artifactId>javadbf</artifactId>
@@ -60,11 +69,6 @@
             <groupId>cn.xiejx</groupId>
             <artifactId>cacher</artifactId>
             <version>0.1.0</version>
-        </dependency>
-        <dependency>
-            <groupId>com.opencsv</groupId>
-            <artifactId>opencsv</artifactId>
-            <version>5.8</version>
         </dependency>
     </dependencies>
 

@@ -25,6 +25,17 @@ public class StringRecords {
     private List<DataCellDto> dataCellHeads;
     private List<List<DataCellDto>> dataCellRecords;
 
+    public static StringRecords fillDataList(List<List<String>> dataList) {
+        StringRecords stringRecords = new StringRecords();
+        stringRecords.setHeads(dataList.get(0));
+        List<List<String>> data = new ArrayList<>();
+        if (dataList.size() > 1) {
+            data = new ArrayList<>(dataList.subList(1, dataList.size()));
+        }
+        stringRecords.setRecords(data);
+        return stringRecords;
+    }
+
     public void build() {
         preBuildHeadInfo();
         preBuildDataInfo();
@@ -53,7 +64,9 @@ public class StringRecords {
 
                 // 表头每个字段的最大长度
                 DataCellDto headDataCell = dataCellHeads.get(i);
-                headDataCell.setLength(Math.max(headDataCell.getLength(), data.length()));
+                if (data != null) {
+                    headDataCell.setLength(Math.max(headDataCell.getLength(), data.length()));
+                }
             }
             dataCellRecords.add(dataCellRecord);
         }

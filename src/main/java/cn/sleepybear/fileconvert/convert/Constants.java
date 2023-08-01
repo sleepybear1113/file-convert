@@ -34,8 +34,9 @@ public class Constants {
          * 55
          */
         UNKNOWN(0, "", "None", "不支持文件类型"),
-        EXCEL_XLS(1001, ".xls", "Excel .xls", "EXCEL 97-2003文件"),
-        EXCEL_XLSX(1002, ".xlsx", "Excel .xlsx", "EXCEL文件"),
+        EXCEL_XLSX(1001, ".xlsx", "Excel .xlsx", "EXCEL文件"),
+        EXCEL_XLS(1002, ".xls", "Excel .xls", "EXCEL 97-2003文件"),
+        EXCEL_XLS_95(1003, ".xls", "Excel .xls", "EXCEL 5.0/95文件"),
         CSV(1003, ".csv", "CSV", "CSV文件"),
         DBF(1101, ".dbf", "DBF", "DBF文件"),
         SQL_MYSQL(1201, ".sql", "MySQL", "MySQL文件"),

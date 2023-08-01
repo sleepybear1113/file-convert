@@ -19,7 +19,7 @@ public class ProcessDataLogic {
     @Resource
     private DbfLogic dbfLogic;
     @Resource
-    private CsvLogic csvLogic;
+    private ExcelLogic excelLogic;
 
     public DataDto processData(FileStreamDto fileStreamDto, Long expireTime) {
         if (fileStreamDto == null) {
@@ -32,12 +32,10 @@ public class ProcessDataLogic {
             throw new FrontException("未知文件类型，无法进行读取转换！");
         } else if (Constants.FileTypeEnum.DBF.equals(fileTypeEnum)) {
             dataDto = dbfLogic.read(fileStreamDto);
-        } else if (Constants.FileTypeEnum.EXCEL_XLS.equals(fileTypeEnum)) {
-            // TODO
-        } else if (Constants.FileTypeEnum.EXCEL_XLSX.equals(fileTypeEnum)) {
-            // TODO
-        } else if (Constants.FileTypeEnum.CSV.equals(fileTypeEnum)) {
-            dataDto = csvLogic.read(fileStreamDto);
+        } else if (Constants.FileTypeEnum.EXCEL_XLS.equals(fileTypeEnum) ||
+                   Constants.FileTypeEnum.EXCEL_XLSX.equals(fileTypeEnum) ||
+                   Constants.FileTypeEnum.CSV.equals(fileTypeEnum)) {
+            dataDto = excelLogic.read(fileStreamDto, fileTypeEnum);
         } else if (Constants.FileTypeEnum.SQL_MYSQL.equals(fileTypeEnum)) {
             // TODO
         } else if (Constants.FileTypeEnum.SQL_SQLITE.equals(fileTypeEnum)) {
