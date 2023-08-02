@@ -80,6 +80,7 @@
 
     <button v-show="!enableGroupByIndexes" v-for="(name, index) in exportButtonList" @click="preProcessExport(index)" :disabled="exporting">{{name}}</button>
     <button v-show="enableGroupByIndexes" v-for="(name, index) in exportZipButtonList" @click="preProcessExport(index)" :disabled="exporting">{{name}}</button>
+    <a v-show="downloadUrl" :href="downloadUrl">没有自动弹出下载？点击这里重试</a>
     <br/>
     <input type="radio" name="choose" id="choose-all" value="true" v-model="chooseAll">
     <label for="choose-all">全部数据</label>

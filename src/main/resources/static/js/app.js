@@ -22,6 +22,7 @@ let app = new Vue({
         exportZipButtonList: ["导出Excel分组压缩包", "导出Dbf分组压缩包"],
         enableSelectedIndexes: false,
         enableGroupByIndexes: false,
+        downloadUrl: "",
     },
     created() {
     },
@@ -37,6 +38,7 @@ let app = new Vue({
 
             this.status = "上传中，请稍后...";
             this.fileUploading = true;
+            this.downloadUrl = "";
 
             this.dataSimpleInfoDto = new DataSimpleInfoDto();
             axios.post(url, formData, {
@@ -77,6 +79,7 @@ let app = new Vue({
             let url = "/data/getDataList";
             let params = {params: {dataId: this.dataId, rowCount: this.rowCount, page: this.page}};
             this.dataLoading = true;
+            this.downloadUrl = "";
             axios.get(url, params).then((res) => {
                 let data = res.data.result;
                 this.dataDto = new DataDto(data);
@@ -188,6 +191,7 @@ let app = new Vue({
                 if (exportKey != null && exportKey.length > 0) {
                     let downloadUrl = axios.defaults.baseURL + "/download/downloadFile?exportKey=" + exportKey;
                     window.open(downloadUrl, '_blank');
+                    this.downloadUrl = downloadUrl;
                 }
                 this.exporting = false;
             }).catch((err) => {
