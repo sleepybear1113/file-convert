@@ -71,7 +71,7 @@
         <dependency>
             <groupId>cn.sleepybear</groupId>
             <artifactId>cacher</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.1</version>
         </dependency>
 
         <!-- 修改过了的 jar，将 jxl.read.biff.WriteAccessRecord 多加了 data[1] > data.length - 1 判断 -->
