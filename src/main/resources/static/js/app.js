@@ -27,15 +27,36 @@ let app = new Vue({
     created() {
     },
     methods: {
+        clear() {
+            this.dataId = "";
+            this.dataSimpleInfoDto = new DataSimpleInfoDto();
+            this.dataDto = new DataDto();
+            this.dbfRecordInfoDto = new DbfRecordInfoDto();
+            this.dbfRowsDto = new DbfRowsDto();
+            this.chooseAll = true;
+            this.status = "";
+            this.deleteAfterUpload = true;
+            this.fileUploading = false;
+            this.dataLoading = false;
+            this.exporting = false;
+            this.enableSelectedIndexes = false;
+            this.enableGroupByIndexes = false;
+            this.downloadUrl = "";
+        },
         upload() {
             let url = "/upload/file";
             let input = document.getElementById("uploadFileInput");
             const file = input.files[0];
+            if (!file) {
+                alert("请选择文件");
+                return;
+            }
             const formData = new FormData();
             formData.append("file", file);
             formData.append("deleteAfterUpload", this.deleteAfterUpload);
             formData.append("expireTimeMinutes", this.expireTimeMinutes);
 
+            this.clear();
             this.status = "上传中，请稍后...";
             this.fileUploading = true;
             this.downloadUrl = "";
@@ -49,8 +70,9 @@ let app = new Vue({
                 this.getHeads(this.dataId);
                 this.getDataList();
                 this.fileUploading = false;
-            }, err => {
+            }).catch(err => {
                 // 出现错误时的处理
+                this.status = "上传失败，请选择其他文件";
                 this.fileUploading = false;
             });
         },
@@ -81,8 +103,10 @@ let app = new Vue({
             this.dataLoading = true;
             this.downloadUrl = "";
             axios.get(url, params).then((res) => {
+                this.clear();
                 let data = res.data.result;
                 this.dataDto = new DataDto(data);
+                this.dataId = this.dataDto.id;
                 this.exportStart = (this.dataDto.pageInfo.page - 1) * this.dataDto.pageInfo.rowCount + 1;
                 this.exportEnd = this.exportStart + this.dataDto.pageInfo.rowCount;
                 this.dataSimpleInfoDto = new DataSimpleInfoDto(this.dataDto);

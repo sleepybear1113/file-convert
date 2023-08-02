@@ -10,7 +10,7 @@
     </parent>
     <groupId>cn.sleepybear</groupId>
     <artifactId>file-convert</artifactId>
-    <version>1.0.3</version>
+    <version>1.0.3.1</version>
     <name>file-convert</name>
     <description>file-convert</description>
     <properties>
@@ -69,9 +69,9 @@
             <version>1.14.0</version>
         </dependency>
         <dependency>
-            <groupId>cn.xiejx</groupId>
+            <groupId>cn.sleepybear</groupId>
             <artifactId>cacher</artifactId>
-            <version>0.1.0</version>
+            <version>1.0.0</version>
         </dependency>
 
         <!-- 修改过了的 jar，将 jxl.read.biff.WriteAccessRecord 多加了 data[1] > data.length - 1 判断 -->

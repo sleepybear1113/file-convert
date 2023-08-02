@@ -23,8 +23,8 @@ public class ExportController {
     private ExportLogic exportLogic;
 
     @RequestMapping("/export/preProcessExport")
-    public BatchDownloadInfoDto preProcessExport(String dataId, Integer[] colIndexes, Integer[] groupByIndexes, String fileName, Integer exportStart, Integer exportEnd, Boolean chooseAll) {
-        return exportLogic.preProcessExport(dataId, CommonUtil.toList(colIndexes), CommonUtil.toList(groupByIndexes), fileName, exportStart, exportEnd, chooseAll);
+    public BatchDownloadInfoDto preProcessExport(String dataId, Integer[] colIndexes, Integer[] groupByIndexes, Integer exportStart, Integer exportEnd, Boolean chooseAll) {
+        return exportLogic.preProcessExport(dataId, CommonUtil.toList(colIndexes), CommonUtil.toList(groupByIndexes), exportStart, exportEnd, chooseAll);
     }
 
     @RequestMapping("/export/exportToExcel")

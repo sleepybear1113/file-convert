@@ -34,7 +34,7 @@ public class ExportLogic {
     @Resource
     private MyConfig myConfig;
 
-    public BatchDownloadInfoDto preProcessExport(String dataId, List<Integer> colIndexes, List<Integer> groupByIndexes, String fileName, Integer exportStart, Integer exportEnd, Boolean chooseAll) {
+    public BatchDownloadInfoDto preProcessExport(String dataId, List<Integer> colIndexes, List<Integer> groupByIndexes, Integer exportStart, Integer exportEnd, Boolean chooseAll) {
         if (exportStart == null || exportStart <= 0) {
             exportStart = 1;
         }
@@ -43,7 +43,7 @@ public class ExportLogic {
             exportEnd = 100;
         }
 
-        DataDto dataDto = getExportedData(dataId, colIndexes, fileName, exportStart, exportEnd, chooseAll);
+        DataDto dataDto = getExportedData(dataId, colIndexes, exportStart, exportEnd, chooseAll);
         List<DataDto> dataDtoList = dataDto.splitByColName(groupByIndexes);
         BatchDownloadInfoDto batchDownloadInfoDto = new BatchDownloadInfoDto();
         batchDownloadInfoDto.setDataId(dataDto.getId());
@@ -51,7 +51,7 @@ public class ExportLogic {
         batchDownloadInfoDto.setFilename(dataDto.getFilename());
         batchDownloadInfoDto.setGroupByIndexes(groupByIndexes);
 
-        batchDownloadInfoDto.setId("batch_" + System.currentTimeMillis());
+        batchDownloadInfoDto.setId("batch_" + CommonUtil.getRandomStr(8));
         GlobalVariable.BATCH_DOWNLOAD_INFO_CACHER.set(batchDownloadInfoDto.getId(), batchDownloadInfoDto, 1000L * 3600);
         return batchDownloadInfoDto;
     }
@@ -98,7 +98,7 @@ public class ExportLogic {
      */
     public DownloadInfoDto exportDataDtoToExcel(DataDto dataDto) {
         long startTime = System.currentTimeMillis();
-        String exportKey = String.valueOf(startTime);
+        String exportKey = "download_" + CommonUtil.getRandomStr(8);
         String exportFilename = "导出数据-%s-共%s条-%s.xlsx".formatted(dataDto.getFilename(), dataDto.getDataList().size(), CommonUtil.getTime());
         log.info("开始导出 Excel 文件, dataId = {}, filename = {}, key = {}, name =  {}", dataDto.getId(), dataDto.getFilename(), exportKey, exportFilename);
 
@@ -151,7 +151,7 @@ public class ExportLogic {
 
     public DownloadInfoDto exportDataDtoToDbf(DataDto dataDto) {
         long startTime = System.currentTimeMillis();
-        String exportKey = String.valueOf(startTime);
+        String exportKey = "download_" + CommonUtil.getRandomStr(8);
         String exportFilename = "导出数据-%s-共%s条-%s.dbf".formatted(dataDto.getFilename(), dataDto.getDataList().size(), CommonUtil.getTime());
         log.info("开始导出 DBF 文件, dataId = {}, filename = {}, key = {}, name =  {}", dataDto.getId(), dataDto.getFilename(), exportKey, exportFilename);
 
@@ -170,7 +170,7 @@ public class ExportLogic {
         return downloadInfoDto;
     }
 
-    public DataDto getExportedData(String dataId, List<Integer> colIndexes, String fileName, Integer exportStart, Integer exportEnd, Boolean chooseAll) {
+    public DataDto getExportedData(String dataId, List<Integer> colIndexes, Integer exportStart, Integer exportEnd, Boolean chooseAll) {
         DataDto cachedDataDto = GlobalVariable.DATA_CACHER.get(dataId);
         if (cachedDataDto == null) {
             log.info("导出 Excel 文件失败, dataId = {} 不存在", dataId);
