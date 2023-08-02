@@ -2,7 +2,6 @@ package cn.sleepybear.fileconvert.convert.excel;
 
 import cn.sleepybear.fileconvert.convert.StringRecords;
 import cn.sleepybear.fileconvert.dto.FileStreamDto;
-import cn.sleepybear.fileconvert.exception.FrontException;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.support.ExcelTypeEnum;
 import jxl.Cell;
@@ -17,10 +16,11 @@ import org.apache.poi.poifs.filesystem.FileMagic;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 import org.apache.poi.util.IOUtils;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -32,13 +32,6 @@ import java.util.Map;
  */
 @Slf4j
 public class ExcelReader {
-    public static StringRecords read(String path, ExcelTypeEnum excelTypeEnum, boolean isExcel95) {
-        try {
-            return read(new FileInputStream(path), excelTypeEnum, isExcel95);
-        } catch (FileNotFoundException e) {
-            throw new FrontException("没有找到文件");
-        }
-    }
 
     public static StringRecords read(InputStream inputStream, ExcelTypeEnum excelTypeEnum, Boolean isExcel95) {
         if (Boolean.FALSE.equals(isExcel95)) {
@@ -50,7 +43,7 @@ public class ExcelReader {
     }
 
     public static StringRecords readNot95(InputStream inputStream, ExcelTypeEnum excelTypeEnum) {
-        List<Map<Integer, String>> listMap = EasyExcel.read(inputStream).excelType(excelTypeEnum).sheet().doReadSync();
+        List<Map<Integer, String>> listMap = EasyExcel.read(inputStream).excelType(excelTypeEnum).headRowNumber(0).sheet().doReadSync();
         List<List<String>> dataList = new ArrayList<>();
         for (Map<Integer, String> map : listMap) {
             List<String> row = new ArrayList<>();

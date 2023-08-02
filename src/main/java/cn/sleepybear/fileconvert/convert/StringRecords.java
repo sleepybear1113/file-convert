@@ -3,6 +3,7 @@ package cn.sleepybear.fileconvert.convert;
 import cn.sleepybear.fileconvert.dto.DataCellDto;
 import cn.sleepybear.fileconvert.dto.DataConstant;
 import lombok.Data;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDate;
@@ -27,6 +28,9 @@ public class StringRecords {
 
     public static StringRecords fillDataList(List<List<String>> dataList) {
         StringRecords stringRecords = new StringRecords();
+        if (CollectionUtils.isEmpty(dataList)) {
+            return stringRecords;
+        }
         stringRecords.setHeads(dataList.get(0));
         List<List<String>> data = new ArrayList<>();
         if (dataList.size() > 1) {
@@ -150,7 +154,8 @@ public class StringRecords {
         boolean isDate = columnData.stream().allMatch(s -> {
             try {
                 if (StringUtils.isNotEmpty(s)) {
-                    LocalDate parse = LocalDate.parse(s);
+                    // noinspection ResultOfMethodCallIgnored
+                    LocalDate.parse(s);
                 }
                 return true;
             } catch (DateTimeParseException e) {
@@ -163,16 +168,5 @@ public class StringRecords {
 
         // 默认类型为文本类型
         return DataConstant.DataType.TEXT;
-    }
-
-    // Calculate the best width for VARCHAR column type based on the longest value
-    private static int calculateStringWidth(List<String> columnData) {
-        int maxWidth = columnData.stream().mapToInt(String::length).max().orElse(255);
-
-        // Adjust the maximum width to fit the database-specific limits
-        // Example: MySQL VARCHAR has a limit of 65,535 characters
-        int dbMaxWidth = 65535;
-
-        return Math.min(maxWidth, dbMaxWidth);
     }
 }
