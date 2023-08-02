@@ -35,3 +35,4 @@ build/
 ### user ###
 /data
 /tmp
+/logs
