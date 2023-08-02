@@ -1,5 +1,6 @@
 package cn.sleepybear.fileconvert.dto;
 
+import cn.sleepybear.fileconvert.utils.CommonUtil;
 import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
 
@@ -31,6 +32,7 @@ public class DataDto implements Serializable {
 
     private List<DataCellDto> heads;
     private List<DataCellDto> fixedHeads;
+    private List<Integer> colCounts;
     private Boolean hasFixedHeader;
 
     private List<List<DataCellDto>> dataList;
@@ -42,7 +44,7 @@ public class DataDto implements Serializable {
         for (DataCellDto head : heads) {
             List<String> headName = new ArrayList<>();
             Object value = head.getValue();
-            headName.add(value == null ? null : value.toString());
+            headName.add(value == null ? "" : value.toString());
             headNames.add(headName);
         }
         return headNames;
@@ -136,6 +138,26 @@ public class DataDto implements Serializable {
         }
     }
 
+    public void buildColCounts() {
+        List<Set<String>> colSets = new ArrayList<>();
+        for (List<DataCellDto> dataCellDtos : dataList) {
+            for (int i = 0; i < dataCellDtos.size(); i++) {
+                DataCellDto dataCellDto = dataCellDtos.get(i);
+                if (dataCellDto == null) {
+                    continue;
+                }
+                if (colSets.size() <= i) {
+                    colSets.add(new HashSet<>());
+                }
+                colSets.get(i).add(dataCellDto.getValue() == null ? null : dataCellDto.getValue().toString());
+            }
+        }
+        this.colCounts = new ArrayList<>();
+        for (Set<String> colSet : colSets) {
+            this.colCounts.add(colSet.size());
+        }
+    }
+
     public DataDto copy() {
         return copy(null);
     }
@@ -149,40 +171,35 @@ public class DataDto implements Serializable {
         dataDto.setCreateTime(createTime);
         dataDto.setExpireTime(expireTime);
 
-        if (CollectionUtils.isNotEmpty(colIndexes)) {
-            colIndexes = new ArrayList<>(colIndexes);
-            colIndexes.removeIf(integer -> integer == null || integer < 0 || integer >= heads.size());
-        }
+        dataDto.setHeads(new ArrayList<>());
+        dataDto.setDataList(new ArrayList<>());
+        dataDto.setColCounts(new ArrayList<>());
+        dataDto.setFixedHeads(new ArrayList<>());
 
-        List<DataCellDto> heads = new ArrayList<>();
-        List<List<DataCellDto>> dataList = new ArrayList<>();
+        colIndexes = CommonUtil.keepAndSetSort(colIndexes, integer -> integer != null && integer >= 0 && integer < heads.size(), Integer::compareTo);
         if (CollectionUtils.isEmpty(colIndexes)) {
             dataDto.setHeads(new ArrayList<>(this.heads));
             dataDto.setDataList(this.dataList.stream().map(ArrayList::new).collect(Collectors.toList()));
             dataDto.buildFixedHeads();
+            dataDto.setColCounts(new ArrayList<>(this.colCounts));
             return dataDto;
-        } else {
-            // 保留的列的索引
-            colIndexes = new ArrayList<>(new HashSet<>(colIndexes));
-            colIndexes.sort(Integer::compareTo);
-
-            // 复制表头
-            for (Integer colIndex : colIndexes) {
-                heads.add(this.heads.get(colIndex));
-            }
-
-            // 复制数据
-            for (List<DataCellDto> dataCellDtos : this.dataList) {
-                List<DataCellDto> row = new ArrayList<>();
-                for (Integer colIndex : colIndexes) {
-                    row.add(dataCellDtos.get(colIndex));
-                }
-                dataList.add(row);
-            }
         }
 
-        dataDto.setHeads(heads);
-        dataDto.setDataList(dataList);
+        // 复制表头和数量
+        for (Integer colIndex : colIndexes) {
+            dataDto.getHeads().add(this.heads.get(colIndex));
+            dataDto.getColCounts().add(this.colCounts.get(colIndex));
+        }
+
+        // 复制数据
+        for (List<DataCellDto> dataCellDtos : this.dataList) {
+            List<DataCellDto> row = new ArrayList<>();
+            for (Integer colIndex : colIndexes) {
+                row.add(dataCellDtos.get(colIndex));
+            }
+            dataDto.getDataList().add(row);
+        }
+
         dataDto.buildFixedHeads();
         return dataDto;
     }
@@ -213,5 +230,40 @@ public class DataDto implements Serializable {
         dataDto.setPageInfo(pageInfoDto);
 
         return dataDto;
+    }
+
+    public List<DataDto> splitByColName(List<Integer> targetColIndexes) {
+        List<DataDto> dataDtos = new ArrayList<>();
+        List<Integer> colIndexes = CommonUtil.keepAndSetSort(targetColIndexes, integer -> integer != null && integer >= 0 && integer < heads.size(), Integer::compareTo);
+        if (CollectionUtils.isEmpty(colIndexes)) {
+            return dataDtos;
+        }
+
+        DataDto copy = this.copy(null);
+        copy.setDataList(new ArrayList<>());
+
+        Map<String, DataDto> dataDtoMap = new HashMap<>();
+        for (List<DataCellDto> dataCellDtos : this.dataList) {
+            StringBuilder key = new StringBuilder();
+            for (Integer colIndex : colIndexes) {
+                Object value = dataCellDtos.get(colIndex).getValue();
+                key.append(value == null ? "" : value.toString()).append("_");
+            }
+            DataDto dataDto = dataDtoMap.get(key.toString());
+            if (dataDto == null) {
+                dataDto = copy.copy(null);
+                dataDto.setFilename(CommonUtil.filterWindowsLegalFileName(key + filename));
+                dataDto.setDataList(new ArrayList<>());
+                dataDtoMap.put(key.toString(), dataDto);
+            }
+            dataDto.getDataList().add(dataCellDtos);
+        }
+
+        List<String> keyList = new ArrayList<>(dataDtoMap.keySet());
+        keyList.sort(String::compareTo);
+        for (String key : keyList) {
+            dataDtos.add(dataDtoMap.get(key));
+        }
+        return dataDtos;
     }
 }

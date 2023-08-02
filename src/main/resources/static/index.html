@@ -29,11 +29,16 @@
         padding: 0;
         text-align: center;
     }
+
+    thead {
+        font-weight: bold;
+        background-color: #f2f2f2;
+    }
 </style>
 <body>
 <div id="app">
-    <input id="uploadFileInput" type="file" name="file" value="请选择文件" :accept="acceptFileTypes">
-    <button v-on:click="upload()">上传</button>
+    <input :disabled="fileUploading" id="uploadFileInput" type="file" name="file" value="请选择文件" :accept="acceptFileTypes">
+    <button :disabled="fileUploading" v-on:click="upload()">上传</button>
     <span>{{status}}</span>
     <br/>
     <input type="checkbox" id="delete" v-model="deleteAfterUpload">
@@ -73,7 +78,8 @@
     </label>
     <hr/>
 
-    <button v-for="(name, index) in exportButtonList" @click="exportFile(index)" :disabled="exportStatusList[index]">{{name}}</button>
+    <button v-show="!enableGroupByIndexes" v-for="(name, index) in exportButtonList" @click="exportFile(index)" :disabled="exportStatusList[index]">{{name}}</button>
+    <button v-show="enableGroupByIndexes" v-for="(name, index) in exportZipButtonList" @click="exportFile(index)" :disabled="exportStatusList[index]">{{name}}</button>
     <br/>
     <input type="radio" name="choose" id="choose-all" value="true" v-model="chooseAll">
     <label for="choose-all">全部数据</label>
@@ -85,16 +91,27 @@
         <label for="import-end">->结束</label>
         <input id="import-end" type="number" v-model="exportEnd" min="1" class="num-input">
     </div>
+    <br/>
+    <label>勾选特定列导出<input type="checkbox" v-model="enableSelectedIndexes" @click="enableSelectedChange()"></label>
+    <label>勾选特定列分组分文件导出<input type="checkbox" v-model="enableGroupByIndexes" @click="enableGroupByChange()"></label>
 
     <hr/>
     <table v-if="dataDto && dataDto.dataList">
         <thead>
 
         <!--选择表头 checkBox-->
-        <tr>
-            <td></td>
-            <template v-for="(head, index) in dataDto.heads">
-                <td><label><input type="checkbox" v-model="head.checked"></label></td>
+        <tr v-show="enableSelectedIndexes">
+            <td>导出列</td>
+            <template v-for="(selected, index) in dataDto.selectedIndexes">
+                <td><label><input type="checkbox" v-model="dataDto.selectedIndexes[index]"></label></td>
+            </template>
+        </tr>
+
+        <!--选择表头 checkBox-->
+        <tr v-show="enableGroupByIndexes">
+            <td>文件分组</td>
+            <template v-for="(selected, index) in dataDto.groupByIndexes">
+                <td><label><input type="checkbox" v-model="dataDto.groupByIndexes[index]"></label></td>
             </template>
         </tr>
 
@@ -111,6 +128,14 @@
             <td>处理表头</td>
             <template v-for="head in dataDto.fixedHeads">
                 <td>{{head.value}}</td>
+            </template>
+        </tr>
+
+        <!--处理表头字段-->
+        <tr>
+            <td>去重数量</td>
+            <template v-for="count in dataDto.colCounts">
+                <td>{{count}}</td>
             </template>
         </tr>
         </thead>

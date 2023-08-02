@@ -2,18 +2,26 @@ package cn.sleepybear.fileconvert.utils;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 /**
  * There is description
@@ -21,6 +29,7 @@ import java.util.List;
  * @author sleepybear
  * @date 2022/10/06 19:54
  */
+@Slf4j
 public class CommonUtil {
 
     public static String getTime() {
@@ -217,5 +226,59 @@ public class CommonUtil {
     private static boolean isNotBoolean(String s) {
         String lowerCase = s.toLowerCase();
         return !"true".equals(lowerCase) && !"false".equals(lowerCase);
+    }
+
+    public static <T> List<T> keepAndSetSort(List<T> list, Predicate<T> predicate, Comparator<T> comparator) {
+        if (CollectionUtils.isEmpty(list)) {
+            return list;
+        }
+        List<T> res = new ArrayList<>(new HashSet<>(list));
+        res = predicate != null ? res.stream().filter(predicate).collect(Collectors.toList()) : res;
+        if (comparator != null) {
+            res.sort(comparator);
+        }
+        return res;
+    }
+
+    public static String filterWindowsLegalFileName(String fileName) {
+        // 定义Windows文件命名规则的正则表达式
+        String regex = "[\\\\/:*?\"<>|]";
+        Pattern pattern = Pattern.compile(regex);
+        return pattern.matcher(fileName).replaceAll("_");
+    }
+
+    public static void compressToZip(List<String> filePaths, String zipFilePath, Boolean deleteOriginalFiles) {
+        try (ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(zipFilePath))) {
+            for (String filePath : filePaths) {
+                File file = new File(filePath);
+                if (file.exists()) {
+                    try (FileInputStream fileIn = new FileInputStream(file)) {
+                        ZipEntry zipEntry = new ZipEntry(file.getName());
+                        zipOut.putNextEntry(zipEntry);
+
+                        byte[] buffer = new byte[1024];
+                        int length;
+                        while ((length = fileIn.read(buffer)) > 0) {
+                            zipOut.write(buffer, 0, length);
+                        }
+
+                        zipOut.closeEntry();
+                    }
+                }
+            }
+            if (Boolean.TRUE.equals(deleteOriginalFiles)) {
+                for (String filePath : filePaths) {
+                    File file = new File(filePath);
+                    if (file.exists()) {
+                        boolean delete = file.delete();
+                        if (!delete) {
+                            log.info("删除文件 {} 失败", file);
+                        }
+                    }
+                }
+            }
+        } catch (IOException e) {
+            log.info("压缩文件失败", e);
+        }
     }
 }

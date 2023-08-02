@@ -31,6 +31,14 @@ public class StringRecords {
         if (CollectionUtils.isEmpty(dataList)) {
             return stringRecords;
         }
+        int maxLength = dataList.stream().mapToInt(List::size).max().orElse(0);
+        if (dataList.get(0).size() < maxLength) {
+            int addCount = maxLength - dataList.get(0).size();
+            for (int i = 0; i < addCount; i++) {
+                dataList.get(0).add(null);
+            }
+        }
+
         stringRecords.setHeads(dataList.get(0));
         List<List<String>> data = new ArrayList<>();
         if (dataList.size() > 1) {
@@ -85,10 +93,11 @@ public class StringRecords {
     }
 
     private static List<DataConstant.DataType> getColumnTypes(List<List<String>> dataList) {
+        int maxLength = dataList.stream().mapToInt(List::size).max().orElse(0);
         List<DataConstant.DataType> columnTypes = new ArrayList<>();
-        for (int i = 0; i < dataList.get(0).size(); i++) {
+        for (int i = 0; i < maxLength; i++) {
             final int index = i;
-            List<String> columnData = dataList.stream().map(row -> row.get(index)).collect(Collectors.toList());
+            List<String> columnData = dataList.stream().map(row -> index < row.size() ? row.get(index) : null).collect(Collectors.toList());
             DataConstant.DataType columnType = determineColumnType(columnData);
             columnTypes.add(columnType);
         }

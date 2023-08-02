@@ -22,14 +22,14 @@ public class ExportController {
     private ExportLogic exportLogic;
 
     @RequestMapping("/export/exportToExcel")
-    public ResultCode<String> exportToExcel(String dataId, Integer[] colIndexes, String fileName, Integer exportStart, Integer exportEnd, Boolean chooseAll) {
-        String exportKey = exportLogic.exportToExcel(dataId, CommonUtil.toList(colIndexes), fileName, exportStart, exportEnd, chooseAll);
+    public ResultCode<String> exportToExcel(String dataId, Integer[] colIndexes, Integer[] groupByIndexes, String fileName, Integer exportStart, Integer exportEnd, Boolean chooseAll) {
+        String exportKey = exportLogic.exportToExcel(dataId, CommonUtil.toList(colIndexes), CommonUtil.toList(groupByIndexes), fileName, exportStart, exportEnd, chooseAll);
         return ResultCode.buildResult(exportKey);
     }
 
     @RequestMapping("/export/exportToDbf")
-    public ResultCode<String> exportToDbf(String dataId, Integer[] colIndexes, String fileName, Integer exportStart, Integer exportEnd, Boolean chooseAll) {
-        String exportKey = exportLogic.exportToDbf(dataId, CommonUtil.toList(colIndexes), fileName, exportStart, exportEnd, chooseAll);
+    public ResultCode<String> exportToDbf(String dataId, Integer[] colIndexes, Integer[] groupByIndexes, String fileName, Integer exportStart, Integer exportEnd, Boolean chooseAll) {
+        String exportKey = exportLogic.exportToDbf(dataId, CommonUtil.toList(colIndexes), CommonUtil.toList(groupByIndexes), fileName, exportStart, exportEnd, chooseAll);
         return ResultCode.buildResult(exportKey);
     }
 }

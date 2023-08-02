@@ -39,6 +39,7 @@ public class DbfLogic {
         List<DataCellDto> headList = dbfRecord.buildHead();
         dataDto.setHeads(headList);
         dataDto.buildFixedHeads();
+        dataDto.buildColCounts();
         return dataDto;
     }
 }

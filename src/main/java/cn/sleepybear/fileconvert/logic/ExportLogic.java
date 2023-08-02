@@ -11,6 +11,7 @@ import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.support.ExcelTypeEnum;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.Charset;
@@ -29,7 +30,7 @@ public class ExportLogic {
     @Resource
     private MyConfig myConfig;
 
-    public String exportToExcel(String dataId, List<Integer> colIndexes, String fileName, Integer exportStart, Integer exportEnd, Boolean chooseAll) {
+    public String exportToExcel(String dataId, List<Integer> colIndexes, List<Integer> groupByIndexes, String fileName, Integer exportStart, Integer exportEnd, Boolean chooseAll) {
         if (exportStart == null || exportStart <= 0) {
             exportStart = 1;
         }
@@ -38,11 +39,50 @@ public class ExportLogic {
             exportEnd = 100;
         }
 
-        long startTime = System.currentTimeMillis();
         DataDto dataDto = getExportedData(dataId, colIndexes, fileName, exportStart, exportEnd, chooseAll);
+        String filename = dataDto.getFilename();
+        List<DataDto> dataDtoList = dataDto.splitByColName(groupByIndexes);
+        if (CollectionUtils.size(dataDtoList) == 1) {
+            DownloadInfoDto downloadInfoDto = exportDataDtoToExcel(dataDto);
+            GlobalVariable.DOWNLOAD_INFO_CACHER.set(downloadInfoDto.getKey(), downloadInfoDto, 1000L * 3600);
+            return downloadInfoDto.getKey();
+        }
+
+        List<DownloadInfoDto> downloadInfoDtoList = new ArrayList<>();
+        for (DataDto dto : dataDtoList) {
+            DownloadInfoDto downloadInfoDto = exportDataDtoToExcel(dto);
+            downloadInfoDtoList.add(downloadInfoDto);
+        }
+        List<String> filePathList = new ArrayList<>();
+        for (DownloadInfoDto downloadInfoDto : downloadInfoDtoList) {
+            filePathList.add(downloadInfoDto.getFullFilePath());
+        }
+
+        List<String> headNames = new ArrayList<>();
+        for (List<String> strings : dataDtoList.get(0).copy(groupByIndexes).getHeadNames()) {
+            headNames.add(String.join("", strings));
+        }
+        String zipFilePath = "分组导出_" + String.join("_", headNames) + "_" + filename + ".zip";
+        String exportFilePath = myConfig.getExportTmpDir() + zipFilePath;
+        String exportKey = String.valueOf(System.currentTimeMillis());
+
+        log.info("开始压缩文件, dataId = {}, filename = {}, key = {}", dataDto.getId(), zipFilePath, exportKey);
+        CommonUtil.ensureParentDir(exportFilePath);
+        CommonUtil.compressToZip(filePathList, exportFilePath, true);
+        DownloadInfoDto downloadInfoDto = new DownloadInfoDto();
+        downloadInfoDto.setKey(exportKey);
+        downloadInfoDto.setFilename(zipFilePath);
+        downloadInfoDto.setFullFilePath(exportFilePath);
+        GlobalVariable.DOWNLOAD_INFO_CACHER.set(downloadInfoDto.getKey(), downloadInfoDto, 1000L * 3600);
+        log.info("压缩文件完成, dataId = {}, filename = {}, key = {}", dataDto.getId(), zipFilePath, exportKey);
+        return downloadInfoDto.getKey();
+    }
+
+    public DownloadInfoDto exportDataDtoToExcel(DataDto dataDto) {
+        long startTime = System.currentTimeMillis();
         String exportKey = String.valueOf(startTime);
-        String exportFilename = "导出数据%s-%s至%s条-%s.xlsx".formatted(dataDto.getFilename(), exportStart, exportEnd, CommonUtil.getTime());
-        log.info("开始导出 Excel 文件, dataId = {}, key = {}, name =  {}", dataId, exportKey, exportFilename);
+        String exportFilename = "导出数据-%s-共%s条-%s.xlsx".formatted(dataDto.getFilename(), dataDto.getDataList().size(), CommonUtil.getTime());
+        log.info("开始导出 Excel 文件, dataId = {}, filename = {}, key = {}, name =  {}", dataDto.getId(), dataDto.getFilename(), exportKey, exportFilename);
 
         String exportFilePath = myConfig.getExportTmpDir() + exportFilename;
         CommonUtil.ensureParentDir(exportFilePath);
@@ -53,17 +93,15 @@ public class ExportLogic {
                 .sheet("sheet1")
                 .doWrite(dataDto.getRawDataList());
 
-        log.info("导出 Excel 文件完成, dataId = {}, key = {}, name =  {}, 耗时 {} ms", dataId, exportKey, exportFilename, System.currentTimeMillis() - startTime);
-
+        log.info("导出 Excel 文件完成, dataId = {}, filename = {}, key = {}, name =  {}, 耗时 {} ms", dataDto.getId(), dataDto.getFilename(), exportKey, exportFilename, System.currentTimeMillis() - startTime);
         DownloadInfoDto downloadInfoDto = new DownloadInfoDto();
         downloadInfoDto.setKey(exportKey);
         downloadInfoDto.setFilename(exportFilename);
         downloadInfoDto.setFullFilePath(exportFilePath);
-        GlobalVariable.DOWNLOAD_INFO_CACHER.set(exportKey, downloadInfoDto, 1000L * 3600);
-        return exportKey;
+        return downloadInfoDto;
     }
 
-    public String exportToDbf(String dataId, List<Integer> colIndexes, String fileName, Integer exportStart, Integer exportEnd, Boolean chooseAll) {
+    public String exportToDbf(String dataId, List<Integer> colIndexes, List<Integer> groupByIndexes, String fileName, Integer exportStart, Integer exportEnd, Boolean chooseAll) {
         if (exportStart == null || exportStart <= 0) {
             exportStart = 1;
         }

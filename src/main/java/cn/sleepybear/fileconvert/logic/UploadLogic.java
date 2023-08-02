@@ -95,7 +95,7 @@ public class UploadLogic {
             }
         }
         fileStreamDto.setId(CommonUtil.bytesToMd5(fileStreamDto.getBytes()));
-        log.info("文件读取成功，id = {}，文件名 = {}，大小 = {}，是否保存 = {}", fileStreamDto.getId(), fileStreamDto.getOriginalFilename(), CommonUtil.getFileSize(file.getSize()), Boolean.FALSE.equals(deleteAfterUpload));
+        log.info("文件接收成功，id = {}，文件名 = {}，大小 = {}，是否保存 = {}", fileStreamDto.getId(), fileStreamDto.getOriginalFilename(), CommonUtil.getFileSize(file.getSize()), Boolean.FALSE.equals(deleteAfterUpload));
 
         return fileStreamDto;
     }

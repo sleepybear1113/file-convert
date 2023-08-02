@@ -60,7 +60,15 @@ class DataDto {
 
         this.heads = props.heads.map((item) => new DataCellDto(item));
         this.fixedHeads = props.fixedHeads.map((item) => new DataCellDto(item));
+        this.colCounts = props.colCounts.map(item => item);
         this.dataList = props.dataList.map((item) => item.map((item2) => new DataCellDto(item2)));
+
+        this.selectedIndexes = [];
+        this.groupByIndexes = [];
+        for (const item of this.heads) {
+            this.selectedIndexes.push(false);
+            this.groupByIndexes.push(false);
+        }
     }
 }
 

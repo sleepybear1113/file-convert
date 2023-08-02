@@ -6,6 +6,7 @@ import cn.sleepybear.fileconvert.convert.excel.ExcelReader;
 import cn.sleepybear.fileconvert.dto.DataDto;
 import cn.sleepybear.fileconvert.dto.FileStreamDto;
 import com.alibaba.excel.support.ExcelTypeEnum;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Component;
  * @date 2023/06/23 22:08
  */
 @Component
+@Slf4j
 public class ExcelLogic {
 
     public DataDto read(FileStreamDto fileStreamDto, Constants.FileTypeEnum fileTypeEnum) {
@@ -38,11 +40,13 @@ public class ExcelLogic {
             fileTypeEnum = Constants.FileTypeEnum.EXCEL_XLS_95;
         }
 
+        long start = System.currentTimeMillis();
         StringRecords stringRecords = ExcelReader.read(fileStreamDto.getByteArrayInputStream(), excelTypeEnum, excel95);
+        log.info("id = {}，读取耗时 = {}ms", fileStreamDto.getId(), System.currentTimeMillis() - start);
+
         if (stringRecords == null) {
             return null;
         }
-        System.out.println(123);
         stringRecords.build();
 
         DataDto dataDto = new DataDto();
@@ -56,6 +60,7 @@ public class ExcelLogic {
         dataDto.setDataList(stringRecords.getDataCellRecords());
 
         dataDto.buildFixedHeads();
+        dataDto.buildColCounts();
         return dataDto;
     }
 }

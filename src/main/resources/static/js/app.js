@@ -15,9 +15,13 @@ let app = new Vue({
         status: "",
         deleteAfterUpload: true,
         expireTimeMinutes: 60,
+        fileUploading: false,
         dataLoading: false,
         exportStatusList: [],
         exportButtonList: ["导出Excel", "导出Dbf"],
+        exportZipButtonList: ["导出Excel分组压缩包", "导出Dbf分组压缩包"],
+        enableSelectedIndexes: false,
+        enableGroupByIndexes: false,
     },
     created() {
     },
@@ -32,6 +36,7 @@ let app = new Vue({
             formData.append("expireTimeMinutes", this.expireTimeMinutes);
 
             this.status = "上传中，请稍后...";
+            this.fileUploading = true;
 
             this.dataSimpleInfoDto = new DataSimpleInfoDto();
             axios.post(url, formData, {
@@ -41,8 +46,10 @@ let app = new Vue({
                 this.dataId = res.data.result;
                 this.getHeads(this.dataId);
                 this.getDataList();
+                this.fileUploading = false;
             }, err => {
                 // 出现错误时的处理
+                this.fileUploading = false;
             });
         },
         getHeads(dataId) {
@@ -102,6 +109,16 @@ let app = new Vue({
             this.$forceUpdate();
         },
         exportFile(type) {
+            if (!this.dataDto) {
+                return;
+            }
+            if (this.enableGroupByIndexes) {
+                let list = this.boolToIndexList(this.dataDto.groupByIndexes);
+                if (list.length === 0) {
+                    alert("分组导出时，分组列不能为空！");
+                    return;
+                }
+            }
             this.changeExportStatus(type, true);
             if (type === 0) {
                 this.exportExcel(type);
@@ -121,7 +138,8 @@ let app = new Vue({
             let params = {
                 params: {
                     dataId: this.dataId,
-                    colIndexes: this.getSelectedHeadIndexes().join(","),
+                    colIndexes: this.boolToIndexList(this.dataDto.selectedIndexes).join(","),
+                    groupByIndexes: this.boolToIndexList(this.dataDto.groupByIndexes).join(","),
                     fileName: null,
                     exportStart: this.exportStart,
                     exportEnd: this.exportEnd,
@@ -141,16 +159,24 @@ let app = new Vue({
                 this.changeExportStatus(type, false);
             });
         },
-        getSelectedHeadIndexes() {
+        boolToIndexList(boolList) {
             let result = [];
-            if (this.dataDto && this.dataDto.heads) {
-                for (let i = 0; i < this.dataDto.heads.length; i++) {
-                    if (this.dataDto.heads[i].checked) {
-                        result.push(i);
-                    }
+            for (let i = 0; i < boolList.length; i++) {
+                if (boolList[i]) {
+                    result.push(i);
                 }
             }
             return result;
-        }
+        },
+        enableSelectedChange() {
+            for (let i = 0; i < this.dataDto.selectedIndexes.length; i++) {
+                this.dataDto.selectedIndexes[i] = !this.enableSelectedIndexes;
+            }
+        },
+        enableGroupByChange() {
+            for (let i = 0; i < this.dataDto.groupByIndexes.length; i++) {
+                this.dataDto.groupByIndexes[i] = !!this.enableGroupByIndexes;
+            }
+        },
     }
 });
