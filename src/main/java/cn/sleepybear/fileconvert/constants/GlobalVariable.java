@@ -7,6 +7,7 @@ import cn.sleepybear.fileconvert.dto.DataDto;
 import cn.sleepybear.fileconvert.dto.DownloadInfoDto;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.File;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -26,6 +27,21 @@ public class GlobalVariable {
 
     public static final Cacher<String, DataDto> DATA_CACHER = new CacherBuilder<String, DataDto>().scheduleName("DATA_CACHER").delay(30, TimeUnit.SECONDS).build();
     public static final Cacher<String, DownloadInfoDto> DOWNLOAD_INFO_CACHER = new CacherBuilder<String, DownloadInfoDto>().scheduleName("DOWNLOAD_INFO_CACHER").delay(30, TimeUnit.SECONDS).build();
+
+    static {
+        DOWNLOAD_INFO_CACHER.setExpireAction((key, cacheObject, useExpireAction) -> {
+            if (useExpireAction) {
+                String fullFilePath = cacheObject.getObjPure().getFullFilePath();
+                File file = new File(fullFilePath);
+                if (file.exists()) {
+                    if (!file.delete()) {
+                        log.error("删除文件失败：{}", fullFilePath);
+                    }
+                }
+            }
+        });
+    }
+
     public static final Cacher<String, BatchDownloadInfoDto> BATCH_DOWNLOAD_INFO_CACHER = new CacherBuilder<String, BatchDownloadInfoDto>().scheduleName("BATCH_DOWNLOAD_INFO_CACHER").delay(30, TimeUnit.SECONDS).build();
 
 }
