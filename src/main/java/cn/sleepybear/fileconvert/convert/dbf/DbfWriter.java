@@ -3,6 +3,7 @@ package cn.sleepybear.fileconvert.convert.dbf;
 import cn.sleepybear.fileconvert.dto.DataCellDto;
 import cn.sleepybear.fileconvert.dto.DataConstant;
 import cn.sleepybear.fileconvert.dto.DataDto;
+import com.linuxense.javadbf.DBFDataType;
 import com.linuxense.javadbf.DBFField;
 import com.linuxense.javadbf.DBFWriter;
 import org.apache.commons.lang3.StringUtils;
@@ -43,10 +44,11 @@ public class DbfWriter {
         List<DBFField> dbfFieldList = new ArrayList<>();
         for (DataCellDto head : fixedHeads) {
             DBFField field = new DBFField();
-            field.setType(DbfRecord.getDbfDataType(DataConstant.DataType.getDataType(head.getDataType())));
+            DBFDataType dbfDataType = DbfRecord.getDbfDataType(DataConstant.DataType.getDataType(head.getDataType()));
+            field.setType(dbfDataType);
             String headValue = (String) head.getValue();
             field.setName(getSubStr(headValue, charset, 10));
-            field.setLength(head.getLength());
+            field.setLength(head.getLength() == 0 ? 10 : head.getLength());
             dbfFieldList.add(field);
         }
 

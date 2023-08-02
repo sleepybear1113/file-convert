@@ -256,7 +256,7 @@ public class CommonUtil {
                         ZipEntry zipEntry = new ZipEntry(file.getName());
                         zipOut.putNextEntry(zipEntry);
 
-                        byte[] buffer = new byte[1024];
+                        byte[] buffer = new byte[10240];
                         int length;
                         while ((length = fileIn.read(buffer)) > 0) {
                             zipOut.write(buffer, 0, length);

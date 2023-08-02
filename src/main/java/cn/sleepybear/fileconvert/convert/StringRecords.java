@@ -138,21 +138,6 @@ public class StringRecords {
             return DataConstant.DataType.DECIMAL;
         }
 
-        // 检查是否为双精度类型
-        boolean isDouble = columnData.stream().allMatch(s -> {
-            try {
-                if (StringUtils.isNotEmpty(s)) {
-                    Double.parseDouble(s);
-                }
-                return true;
-            } catch (NumberFormatException e) {
-                return false;
-            }
-        });
-        if (isDouble) {
-            return DataConstant.DataType.DOUBLE;
-        }
-
         // 检查是否为布尔类型
         boolean isBoolean = columnData.stream().allMatch(s -> "true".equalsIgnoreCase(s) || "false".equalsIgnoreCase(s));
         if (isBoolean) {

@@ -50,6 +50,10 @@ public class DataDto implements Serializable {
         return headNames;
     }
 
+    public String getHeadNameStr(String split) {
+        return getHeadNames().stream().map(headName -> headName.get(0)).collect(Collectors.joining(split));
+    }
+
     public List<List<Object>> getRawDataList() {
         List<List<Object>> rawDataList = new ArrayList<>();
         for (List<DataCellDto> data : dataList) {
@@ -236,7 +240,7 @@ public class DataDto implements Serializable {
         List<DataDto> dataDtos = new ArrayList<>();
         List<Integer> colIndexes = CommonUtil.keepAndSetSort(targetColIndexes, integer -> integer != null && integer >= 0 && integer < heads.size(), Integer::compareTo);
         if (CollectionUtils.isEmpty(colIndexes)) {
-            return dataDtos;
+            return List.of(this);
         }
 
         DataDto copy = this.copy(null);

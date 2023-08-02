@@ -1,5 +1,6 @@
 package cn.sleepybear.fileconvert.constants;
 
+import cn.sleepybear.fileconvert.dto.BatchDownloadInfoDto;
 import cn.sleepybear.fileconvert.dto.DataDto;
 import cn.sleepybear.fileconvert.dto.DownloadInfoDto;
 import cn.xiejx.cacher.Cacher;
@@ -25,5 +26,6 @@ public class GlobalVariable {
 
     public static final Cacher<String, DataDto> DATA_CACHER = new CacherBuilder<String, DataDto>().scheduleName("DATA_CACHER").delay(30, TimeUnit.SECONDS).build();
     public static final Cacher<String, DownloadInfoDto> DOWNLOAD_INFO_CACHER = new CacherBuilder<String, DownloadInfoDto>().scheduleName("DOWNLOAD_INFO_CACHER").delay(30, TimeUnit.SECONDS).build();
+    public static final Cacher<String, BatchDownloadInfoDto> BATCH_DOWNLOAD_INFO_CACHER = new CacherBuilder<String, BatchDownloadInfoDto>().scheduleName("BATCH_DOWNLOAD_INFO_CACHER").delay(30, TimeUnit.SECONDS).build();
 
 }

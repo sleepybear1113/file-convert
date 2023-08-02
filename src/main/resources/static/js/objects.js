@@ -89,6 +89,21 @@ class DataCellDto {
     }
 }
 
+class BatchDownloadInfoDto {
+    constructor(props) {
+        if (props == null) {
+            return;
+        }
+
+        this.id = props.id;
+        this.dataId = props.dataId;
+        this.filename = props.filename;
+        this.groupByIndexes = props.groupByIndexes.map(item => item);
+        this.dataDtoCount = props.dataDtoCount;
+        this.totalDataCount = props.totalDataCount;
+    }
+}
+
 /**
  * PageInfoDto 的 JavaScript 类
  */

@@ -78,8 +78,8 @@
     </label>
     <hr/>
 
-    <button v-show="!enableGroupByIndexes" v-for="(name, index) in exportButtonList" @click="exportFile(index)" :disabled="exportStatusList[index]">{{name}}</button>
-    <button v-show="enableGroupByIndexes" v-for="(name, index) in exportZipButtonList" @click="exportFile(index)" :disabled="exportStatusList[index]">{{name}}</button>
+    <button v-show="!enableGroupByIndexes" v-for="(name, index) in exportButtonList" @click="preProcessExport(index)" :disabled="exporting">{{name}}</button>
+    <button v-show="enableGroupByIndexes" v-for="(name, index) in exportZipButtonList" @click="preProcessExport(index)" :disabled="exporting">{{name}}</button>
     <br/>
     <input type="radio" name="choose" id="choose-all" value="true" v-model="chooseAll">
     <label for="choose-all">全部数据</label>
@@ -101,7 +101,7 @@
 
         <!--选择表头 checkBox-->
         <tr v-show="enableSelectedIndexes">
-            <td>导出列</td>
+            <td>导出列<button @click="chooseNoneSelectedIndexes()">×</button></td>
             <template v-for="(selected, index) in dataDto.selectedIndexes">
                 <td><label><input type="checkbox" v-model="dataDto.selectedIndexes[index]"></label></td>
             </template>

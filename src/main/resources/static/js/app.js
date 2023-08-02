@@ -17,7 +17,7 @@ let app = new Vue({
         expireTimeMinutes: 60,
         fileUploading: false,
         dataLoading: false,
-        exportStatusList: [],
+        exporting: false,
         exportButtonList: ["导出Excel", "导出Dbf"],
         exportZipButtonList: ["导出Excel分组压缩包", "导出Dbf分组压缩包"],
         enableSelectedIndexes: false,
@@ -104,11 +104,7 @@ let app = new Vue({
                 }
             });
         },
-        changeExportStatus(index, status) {
-            this.exportStatusList[index] = status;
-            this.$forceUpdate();
-        },
-        exportFile(type) {
+        preProcessExport(type) {
             if (!this.dataDto) {
                 return;
             }
@@ -119,22 +115,9 @@ let app = new Vue({
                     return;
                 }
             }
-            this.changeExportStatus(type, true);
-            if (type === 0) {
-                this.exportExcel(type);
-            } else if (type === 1) {
-                this.exportDbf(type);
-            }
-        },
-        exportExcel(type) {
-            let url = "/export/exportToExcel";
-            this.exportToFile(url, type);
-        },
-        exportDbf(type) {
-            let url = "/export/exportToDbf";
-            this.exportToFile(url, type);
-        },
-        exportToFile(url, type) {
+
+            this.exporting = true;
+            let url = "/export/preProcessExport";
             let params = {
                 params: {
                     dataId: this.dataId,
@@ -147,16 +130,68 @@ let app = new Vue({
                 }
             };
             axios.get(url, params).then((res) => {
+                let batchDownloadInfoDto = new BatchDownloadInfoDto(res.data.result);
+                if (!batchDownloadInfoDto || batchDownloadInfoDto.dataDtoCount === 0) {
+                    alert("导出失败！没有数据！");
+                    this.exporting = false;
+                    return;
+                }
+
+                let dataDtoCount = batchDownloadInfoDto.dataDtoCount;
+                let totalDataCount = batchDownloadInfoDto.totalDataCount;
+                let id = batchDownloadInfoDto.id;
+                let directExport = false;
+                if (dataDtoCount <= 10) {
+                    directExport = true;
+                } else if (dataDtoCount <= 20 && dataDtoCount * 5 >= totalDataCount) {
+                    directExport = true;
+                } else if (dataDtoCount <= 100 && dataDtoCount * 20 >= totalDataCount) {
+                    directExport = true;
+                } else if (dataDtoCount > 100) {
+                    alert("预处理完成，但是等待生成和压缩的文件有" + dataDtoCount + "个，导出文件过多，系统处理能力有限，暂时无法导出！");
+                    this.exporting = false;
+                    return;
+                }
+                if (!directExport) {
+                    let b = confirm(`预处理完成，但是等待生成和压缩的文件有${dataDtoCount}个，而总数据条数只有${totalDataCount}条。若选择继续导出，可能会等待较长时间，是否继续？`);
+                    if (!b) {
+                        this.exporting = false;
+                        return;
+                    }
+                }
+
+                if (type === 0) {
+                    this.exportExcel(id);
+                } else if (type === 1) {
+                    this.exportDbf(id);
+                }
+            }).catch((err) => {
+                this.exporting = false;
+            });
+        },
+        exportExcel(batchDownloadInfoId) {
+            let url = "/export/exportToExcel";
+            this.exportToFile(url, batchDownloadInfoId);
+        },
+        exportDbf(batchDownloadInfoId) {
+            let url = "/export/exportToDbf";
+            this.exportToFile(url, batchDownloadInfoId);
+        },
+        exportToFile(url, batchDownloadInfoId) {
+            let params = {
+                params: {
+                    batchDownloadInfoId: batchDownloadInfoId,
+                }
+            };
+            axios.get(url, params).then((res) => {
                 let exportKey = res.data.result;
                 if (exportKey != null && exportKey.length > 0) {
-
                     let downloadUrl = axios.defaults.baseURL + "/download/downloadFile?exportKey=" + exportKey;
-                    console.log(downloadUrl);
                     window.open(downloadUrl, '_blank');
                 }
-                this.changeExportStatus(type, false);
+                this.exporting = false;
             }).catch((err) => {
-                this.changeExportStatus(type, false);
+                this.exporting = false;
             });
         },
         boolToIndexList(boolList) {
@@ -170,12 +205,17 @@ let app = new Vue({
         },
         enableSelectedChange() {
             for (let i = 0; i < this.dataDto.selectedIndexes.length; i++) {
-                this.dataDto.selectedIndexes[i] = !this.enableSelectedIndexes;
+                Vue.set(this.dataDto.selectedIndexes, i, !this.enableSelectedIndexes);
+            }
+        },
+        chooseNoneSelectedIndexes() {
+            for (let i = 0; i < this.dataDto.selectedIndexes.length; i++) {
+                Vue.set(this.dataDto.selectedIndexes, i, false);
             }
         },
         enableGroupByChange() {
             for (let i = 0; i < this.dataDto.groupByIndexes.length; i++) {
-                this.dataDto.groupByIndexes[i] = !!this.enableGroupByIndexes;
+                Vue.set(this.dataDto.groupByIndexes, i, false);
             }
         },
     }
