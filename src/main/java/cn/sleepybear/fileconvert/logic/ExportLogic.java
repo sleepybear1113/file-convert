@@ -56,7 +56,7 @@ public class ExportLogic {
         return batchDownloadInfoDto;
     }
 
-    public String exportToExcel(String id) {
+    public String exportToExcel(String id, ExcelTypeEnum excelTypeEnum) {
         if (StringUtils.isEmpty(id)) {
             throw new FrontException("id不能为空");
         }
@@ -69,10 +69,13 @@ public class ExportLogic {
         if (CollectionUtils.isEmpty(dataDtoList)) {
             return "";
         }
+        if (excelTypeEnum == null) {
+            excelTypeEnum = ExcelTypeEnum.XLSX;
+        }
 
         // 如果只有一组数据, 则直接导出
         if (CollectionUtils.size(dataDtoList) == 1) {
-            DownloadInfoDto downloadInfoDto = exportDataDtoToExcel(dataDtoList.get(0));
+            DownloadInfoDto downloadInfoDto = exportDataDtoToExcel(dataDtoList.get(0), excelTypeEnum);
             GlobalVariable.DOWNLOAD_INFO_CACHER.set(downloadInfoDto.getKey(), downloadInfoDto, 1000L * 3600);
             return downloadInfoDto.getKey();
         }
@@ -82,7 +85,7 @@ public class ExportLogic {
         long start = System.currentTimeMillis();
         List<DownloadInfoDto> downloadInfoDtoList = new ArrayList<>();
         for (DataDto dto : dataDtoList) {
-            DownloadInfoDto downloadInfoDto = exportDataDtoToExcel(dto);
+            DownloadInfoDto downloadInfoDto = exportDataDtoToExcel(dto, excelTypeEnum);
             downloadInfoDtoList.add(downloadInfoDto);
         }
 
@@ -96,17 +99,17 @@ public class ExportLogic {
      * @param dataDto dataDto
      * @return DownloadInfoDto
      */
-    public DownloadInfoDto exportDataDtoToExcel(DataDto dataDto) {
+    public DownloadInfoDto exportDataDtoToExcel(DataDto dataDto, ExcelTypeEnum excelTypeEnum) {
         long startTime = System.currentTimeMillis();
         String exportKey = "download_" + CommonUtil.getRandomStr(8);
-        String exportFilename = "导出数据-%s-共%s条-%s.xlsx".formatted(dataDto.getFilename(), dataDto.getDataList().size(), CommonUtil.getTime());
+        String exportFilename = "导出数据-%s-共%s条-%s%s".formatted(dataDto.getFilename(), dataDto.getDataList().size(), CommonUtil.getTime(), excelTypeEnum.getValue());
         log.info("开始导出 Excel 文件, dataId = {}, filename = {}, key = {}, name =  {}", dataDto.getId(), dataDto.getFilename(), exportKey, exportFilename);
 
         String exportFilePath = myConfig.getExportTmpDir() + exportFilename;
         CommonUtil.ensureParentDir(exportFilePath);
         EasyExcel.write(exportFilePath)
                 .head(dataDto.getHeadNames())
-                .excelType(ExcelTypeEnum.XLSX)
+                .excelType(excelTypeEnum)
                 .sheet("sheet1")
                 .doWrite(dataDto.getRawDataList());
 

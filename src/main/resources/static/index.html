@@ -2,7 +2,7 @@
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>文件转换 - By Sleepybear</title>
 </head>
 <script src="lib/vue.js"></script>
 <script src="lib/axios.min.js"></script>
@@ -97,7 +97,7 @@
     <label>勾选特定列分组分文件导出<input type="checkbox" v-model="enableGroupByIndexes" @click="enableGroupByChange()"></label>
 
     <hr/>
-    <table v-if="dataDto && dataDto.dataList">
+    <table v-if="dataDto && dataDto.dataList && dataDto.dataList.length > 0">
         <thead>
 
         <!--选择表头 checkBox-->

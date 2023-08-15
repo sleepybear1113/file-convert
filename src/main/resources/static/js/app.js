@@ -18,8 +18,8 @@ let app = new Vue({
         fileUploading: false,
         dataLoading: false,
         exporting: false,
-        exportButtonList: ["导出Excel", "导出Dbf"],
-        exportZipButtonList: ["导出Excel分组压缩包", "导出Dbf分组压缩包"],
+        exportButtonList: ["导出Excel", "导出Dbf", "导出CSV"],
+        exportZipButtonList: ["导出Excel分组压缩包", "导出Dbf分组压缩包", "导出CSV分组压缩包"],
         enableSelectedIndexes: false,
         enableGroupByIndexes: false,
         downloadUrl: "",
@@ -117,6 +117,10 @@ let app = new Vue({
             });
         },
         deleteByDataId() {
+            if (this.exportStart > this.exportEnd) {
+                alert("开始行不能大于结束行");
+                return;
+            }
             let url = "/data/deleteByDataId";
             let params = {params: {dataId: this.dataId}};
             axios.get(url, params).then((res) => {
@@ -170,11 +174,11 @@ let app = new Vue({
                 let directExport = false;
                 if (dataDtoCount <= 10) {
                     directExport = true;
-                } else if (dataDtoCount <= 20 && dataDtoCount * 5 >= totalDataCount) {
+                } else if (dataDtoCount <= 30 && dataDtoCount * 4 >= totalDataCount) {
                     directExport = true;
-                } else if (dataDtoCount <= 100 && dataDtoCount * 20 >= totalDataCount) {
+                } else if (dataDtoCount <= 200 && dataDtoCount * 15 >= totalDataCount) {
                     directExport = true;
-                } else if (dataDtoCount > 100) {
+                } else if (dataDtoCount > 400) {
                     alert("预处理完成，但是等待生成和压缩的文件有" + dataDtoCount + "个，导出文件过多，系统处理能力有限，暂时无法导出！");
                     this.exporting = false;
                     return;
@@ -191,6 +195,8 @@ let app = new Vue({
                     this.exportExcel(id);
                 } else if (type === 1) {
                     this.exportDbf(id);
+                } else if (type === 2) {
+                    this.exportCsv(id);
                 }
             }).catch((err) => {
                 this.exporting = false;
@@ -202,6 +208,10 @@ let app = new Vue({
         },
         exportDbf(batchDownloadInfoId) {
             let url = "/export/exportToDbf";
+            this.exportToFile(url, batchDownloadInfoId);
+        },
+        exportCsv(batchDownloadInfoId) {
+            let url = "/export/exportToCsv";
             this.exportToFile(url, batchDownloadInfoId);
         },
         exportToFile(url, batchDownloadInfoId) {

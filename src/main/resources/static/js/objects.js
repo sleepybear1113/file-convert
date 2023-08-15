@@ -1,31 +1,17 @@
 class DbfRecordInfoDto {
-    constructor(props) {
-        if (props == null) {
-            return;
-        }
-
+    constructor(props = {}) {
         this.fileDeleted = props.fileDeleted;
         this.hexId = props.hexId;
         this.name = props.name;
         this.recordNums = props.recordNums;
-        this.fileDeleted = props.fileDeleted;
         this.createTime = props.createTime;
         this.expireTime = props.expireTime;
-
-        this.dbfFields = [new DbfFields()];
-        this.dbfFields = buildDbfFields(props.dbfFields);
+        this.dbfFields = props.dbfFields ? props.dbfFields.map(item => new DbfFields(item)) : [];
     }
 }
 
-/**
- * DataSimpleInfoDto 的 JavaScript 类
- */
 class DataSimpleInfoDto {
-    constructor(props) {
-        if (props == null) {
-            return;
-        }
-
+    constructor(props = {}) {
         this.id = props.id;
         this.filename = props.filename;
         this.type = props.type;
@@ -33,20 +19,12 @@ class DataSimpleInfoDto {
         this.fileDeleted = props.fileDeleted;
         this.createTime = props.createTime;
         this.expireTime = props.expireTime;
-
-        this.heads = props.heads.map((item) => new DataCellDto(item));
+        this.heads = props.heads ? props.heads.map(item => new DataCellDto(item)) : [];
     }
 }
 
-/**
- * DataDto 的 JavaScript 类
- */
 class DataDto {
-    constructor(props) {
-        if (props == null) {
-            return;
-        }
-
+    constructor(props = {}) {
         this.filename = props.filename;
         this.id = props.id;
         this.type = props.type;
@@ -58,29 +36,18 @@ class DataDto {
 
         this.pageInfo = new PageInfo(props.pageInfo);
 
-        this.heads = props.heads.map((item) => new DataCellDto(item));
-        this.fixedHeads = props.fixedHeads.map((item) => new DataCellDto(item));
-        this.colCounts = props.colCounts.map(item => item);
-        this.dataList = props.dataList.map((item) => item.map((item2) => new DataCellDto(item2)));
+        this.heads = props.heads ? props.heads.map((item) => new DataCellDto(item)) : [];
+        this.fixedHeads = props.fixedHeads ? props.fixedHeads.map((item) => new DataCellDto(item)) : [];
+        this.colCounts = props.colCounts ? props.colCounts.map(item => item) : [];
+        this.dataList = props.dataList ? props.dataList.map((item) => item ? item.map((item2) => new DataCellDto(item2)) : []) : [];
 
-        this.selectedIndexes = [];
-        this.groupByIndexes = [];
-        for (const item of this.heads) {
-            this.selectedIndexes.push(false);
-            this.groupByIndexes.push(false);
-        }
+        this.selectedIndexes = new Array(this.heads.length).fill(false);
+        this.groupByIndexes = new Array(this.heads.length).fill(false);
     }
 }
 
-/**
- * DataCellDto 的 JavaScript 类
- */
 class DataCellDto {
-    constructor(props) {
-        if (props == null) {
-            return;
-        }
-
+    constructor(props = {}) {
         this.value = props.value;
         this.dataType = props.dataType;
         this.length = props.length;
@@ -90,29 +57,18 @@ class DataCellDto {
 }
 
 class BatchDownloadInfoDto {
-    constructor(props) {
-        if (props == null) {
-            return;
-        }
-
+    constructor(props = {}) {
         this.id = props.id;
         this.dataId = props.dataId;
         this.filename = props.filename;
-        this.groupByIndexes = props.groupByIndexes.map(item => item);
+        this.groupByIndexes = props.groupByIndexes ? props.groupByIndexes.map(item => item) : [];
         this.dataDtoCount = props.dataDtoCount;
         this.totalDataCount = props.totalDataCount;
     }
 }
 
-/**
- * PageInfoDto 的 JavaScript 类
- */
 class PageInfo {
-    constructor(props) {
-        if (props == null) {
-            return;
-        }
-
+    constructor(props = {}) {
         this.rowCount = props.rowCount;
         this.totalCount = props.totalCount;
         this.page = props.page;
@@ -121,11 +77,7 @@ class PageInfo {
 }
 
 class DbfFields {
-    constructor(props) {
-        if (props == null) {
-            return;
-        }
-
+    constructor(props = {}) {
         this.dataType = props.dataType;
         this.type = props.type;
         this.name = props.name;
@@ -133,24 +85,10 @@ class DbfFields {
 }
 
 class DbfRowsDto {
-    constructor(props) {
-        if (props == null) {
-            return;
-        }
-
+    constructor(props = {}) {
         this.id = props.id;
         this.name = props.name;
-        this.dbfFields = buildDbfFields(props.dbfFields);
+        this.dbfFields = props.dbfFields ? props.dbfFields.map(item => new DbfFields(item)) : [];
         this.rows = props.rows;
     }
-}
-
-function buildDbfFields(tmpDbfFields) {
-    let list = [];
-    if (tmpDbfFields != null && tmpDbfFields.length > 0) {
-        for (let i = 0; i < tmpDbfFields.length; i++) {
-            list.push(new DbfFields(tmpDbfFields[i]));
-        }
-    }
-    return list;
 }
