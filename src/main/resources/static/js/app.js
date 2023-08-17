@@ -1,10 +1,9 @@
 let app = new Vue({
     el: '#app',
     data: {
+        downloadPrefix: axios.defaults.baseURL + "/download/downloadFile?exportKey=",
         acceptFileTypes: ".xls,.xlsx,.dbf,.csv,.sql,.db,.sqlite",
         dataId: "",
-        dbfRecordInfoDto: new DbfRecordInfoDto(),
-        dataSimpleInfoDto: new DataSimpleInfoDto(),
         dataDto: new DataDto(),
         rowCount: 100,
         page: 1,
@@ -18,20 +17,33 @@ let app = new Vue({
         fileUploading: false,
         dataLoading: false,
         exporting: false,
-        exportButtonList: ["导出Excel", "导出Dbf", "导出CSV"],
-        exportZipButtonList: ["导出Excel分组压缩包", "导出Dbf分组压缩包", "导出CSV分组压缩包"],
+        toastMsg: "",
+        exportButtonList: [
+            new ButtonExport("导出Excel", "/export/exportToExcel"),
+            new ButtonExport("导出CSV", "/export/exportToCsv"),
+            new ButtonExport("导出Dbf", "/export/exportToDbf"),
+        ],
+        exportZipButtonList: [
+            new ButtonExport("导出Excel分组压缩包", "/export/exportToExcel"),
+            new ButtonExport("导出CSV分组压缩包", "/export/exportToCsv"),
+            new ButtonExport("导出Dbf分组压缩包", "/export/exportToDbf"),
+        ],
         enableSelectedIndexes: false,
         enableGroupByIndexes: false,
-        downloadUrl: "",
+        exportKey: "",
+        confirmData: {
+            title: "",
+            content: "",
+            action: "",
+            data: {},
+        }
     },
     created() {
     },
     methods: {
         clear() {
             this.dataId = "";
-            this.dataSimpleInfoDto = new DataSimpleInfoDto();
             this.dataDto = new DataDto();
-            this.dbfRecordInfoDto = new DbfRecordInfoDto();
             this.dbfRowsDto = new DbfRowsDto();
             this.chooseAll = true;
             this.status = "";
@@ -41,14 +53,14 @@ let app = new Vue({
             this.exporting = false;
             this.enableSelectedIndexes = false;
             this.enableGroupByIndexes = false;
-            this.downloadUrl = "";
+            this.exportKey = "";
         },
         upload() {
             let url = "/upload/file";
             let input = document.getElementById("uploadFileInput");
             const file = input.files[0];
             if (!file) {
-                alert("请选择文件");
+                showAlertWarning("请选择文件");
                 return;
             }
             const formData = new FormData();
@@ -59,16 +71,14 @@ let app = new Vue({
             this.clear();
             this.status = "上传中，请稍后...";
             this.fileUploading = true;
-            this.downloadUrl = "";
+            this.exportKey = "";
 
-            this.dataSimpleInfoDto = new DataSimpleInfoDto();
             axios.post(url, formData, {
                 'Content-type': 'multipart/form-data'
             }).then(res => {
                 this.status = "";
                 this.dataId = res.data.result;
-                this.getHeads(this.dataId);
-                this.getDataList();
+                this.getDataList(1);
                 this.fileUploading = false;
             }).catch(err => {
                 // 出现错误时的处理
@@ -79,29 +89,40 @@ let app = new Vue({
         getHeads(dataId) {
             let url = "/data/getHeads";
             axios.get(url, {params: {dataId: this.dataId}}).then((res) => {
-                this.dataSimpleInfoDto = new DataSimpleInfoDto(res.data.result);
-                this.exportEnd = this.dataSimpleInfoDto.recordNums;
-                this.dataDto = new DataDto();
+                this.dataDto = new DataDto(res.data.result);
+                this.exportEnd = this.dataDto.recordNums;
             });
         },
         parseTimeToStr(t) {
             return parseTimeToStr(t);
+        },
+        validPage() {
+            if (this.page <= 0) {
+                this.page = 1;
+                this.showToast("已经是第一页了！");
+                return;
+            }
+            if (this.page > this.dataDto.pageInfo.totalPage) {
+                this.page = this.dataDto.pageInfo.totalPage;
+                this.showToast("已经是最后一页了！");
+            }
         },
         changePage(pages) {
             if (pages === 0) {
                 this.page = 1;
             }
             this.page = pages + parseInt(this.page);
-            if (this.page <= 0) {
-                this.page = 1;
-            }
-            this.getDataList();
+            this.validPage();
+            this.getDataList(this.page);
         },
-        getDataList() {
+        getDataList(page) {
             let url = "/data/getDataList";
+            this.page = page;
+            this.validPage();
+
             let params = {params: {dataId: this.dataId, rowCount: this.rowCount, page: this.page}};
             this.dataLoading = true;
-            this.downloadUrl = "";
+            this.exportKey = "";
             axios.get(url, params).then((res) => {
                 this.clear();
                 let data = res.data.result;
@@ -109,40 +130,47 @@ let app = new Vue({
                 this.dataId = this.dataDto.id;
                 this.exportStart = (this.dataDto.pageInfo.page - 1) * this.dataDto.pageInfo.rowCount + 1;
                 this.exportEnd = this.exportStart + this.dataDto.pageInfo.rowCount;
-                this.dataSimpleInfoDto = new DataSimpleInfoDto(this.dataDto);
-                this.dataSimpleInfoDto.recordNums = this.dataDto.pageInfo.totalCount;
+                this.dataDto.recordNums = this.dataDto.pageInfo.totalCount;
                 this.dataLoading = false;
             }).catch((err) => {
                 this.dataLoading = false;
             });
         },
         deleteByDataId() {
-            if (this.exportStart > this.exportEnd) {
-                alert("开始行不能大于结束行");
-                return;
-            }
             let url = "/data/deleteByDataId";
             let params = {params: {dataId: this.dataId}};
             axios.get(url, params).then((res) => {
                 let data = res.data.result;
                 this.dataId = "";
                 this.dataDto = new DataDto();
-                this.dataSimpleInfoDto = new DataSimpleInfoDto();
                 if (data) {
-                    alert("删除成功！");
+                    showAlertSuccess("删除成功！");
                 } else {
-                    alert("删除失败！找不到该数据或者已经删除！");
+                    showAlertWarning("删除失败！找不到该数据或者已经删除！");
                 }
             });
         },
-        preProcessExport(type) {
+        deleteDownloadFile(exportKey) {
+            let url = "/export/deleteDownloadFile";
+            let params = {params: {downloadId: exportKey}};
+            axios.get(url, params).then((res) => {
+                let data = res.data.result;
+                if (data) {
+                    showAlertSuccess("删除成功！");
+                }
+                this.exportKey = "";
+            }).catch((err) => {
+                this.exportKey = "";
+            });
+        },
+        preProcessExport(exportUrl) {
             if (!this.dataDto) {
                 return;
             }
             if (this.enableGroupByIndexes) {
-                let list = this.boolToIndexList(this.dataDto.groupByIndexes);
+                let list = this.boolToIndexList(this.dataDto.heads, "groupByChecked");
                 if (list.length === 0) {
-                    alert("分组导出时，分组列不能为空！");
+                    showAlertWarning("分组导出时，分组列不能为空！");
                     return;
                 }
             }
@@ -152,8 +180,8 @@ let app = new Vue({
             let params = {
                 params: {
                     dataId: this.dataId,
-                    colIndexes: this.boolToIndexList(this.dataDto.selectedIndexes).join(","),
-                    groupByIndexes: this.boolToIndexList(this.dataDto.groupByIndexes).join(","),
+                    colIndexes: this.boolToIndexList(this.dataDto.heads, "shown").join(","),
+                    groupByIndexes: this.boolToIndexList(this.dataDto.heads, "groupByChecked").join(","),
                     fileName: null,
                     exportStart: this.exportStart,
                     exportEnd: this.exportEnd,
@@ -163,11 +191,12 @@ let app = new Vue({
             axios.get(url, params).then((res) => {
                 let batchDownloadInfoDto = new BatchDownloadInfoDto(res.data.result);
                 if (!batchDownloadInfoDto || batchDownloadInfoDto.dataDtoCount === 0) {
-                    alert("导出失败！没有数据！");
+                    showAlertWarning("导出失败！没有数据！");
                     this.exporting = false;
                     return;
                 }
 
+                this.exportKey = "";
                 let dataDtoCount = batchDownloadInfoDto.dataDtoCount;
                 let totalDataCount = batchDownloadInfoDto.totalDataCount;
                 let id = batchDownloadInfoDto.id;
@@ -179,40 +208,19 @@ let app = new Vue({
                 } else if (dataDtoCount <= 200 && dataDtoCount * 15 >= totalDataCount) {
                     directExport = true;
                 } else if (dataDtoCount > 400) {
-                    alert("预处理完成，但是等待生成和压缩的文件有" + dataDtoCount + "个，导出文件过多，系统处理能力有限，暂时无法导出！");
+                    showAlertWarning("预处理完成，但是等待生成和压缩的文件有" + dataDtoCount + "个，导出文件过多，系统处理能力有限，暂时无法导出！");
                     this.exporting = false;
                     return;
                 }
                 if (!directExport) {
-                    let b = confirm(`预处理完成，但是等待生成和压缩的文件有${dataDtoCount}个，而总数据条数只有${totalDataCount}条。若选择继续导出，可能会等待较长时间，是否继续？`);
-                    if (!b) {
-                        this.exporting = false;
-                        return;
-                    }
-                }
-
-                if (type === 0) {
-                    this.exportExcel(id);
-                } else if (type === 1) {
-                    this.exportDbf(id);
-                } else if (type === 2) {
-                    this.exportCsv(id);
+                    let content = `预处理完成，但是等待生成和压缩的文件有${dataDtoCount}个，而总数据条数有${totalDataCount}条。若选择继续导出，可能会等待较长时间，是否继续？`;
+                    this.showConfirm("提示", content, "exportMoreToFile", {exportUrl: exportUrl, id: id});
+                } else {
+                    this.exportToFile(exportUrl, id);
                 }
             }).catch((err) => {
                 this.exporting = false;
             });
-        },
-        exportExcel(batchDownloadInfoId) {
-            let url = "/export/exportToExcel";
-            this.exportToFile(url, batchDownloadInfoId);
-        },
-        exportDbf(batchDownloadInfoId) {
-            let url = "/export/exportToDbf";
-            this.exportToFile(url, batchDownloadInfoId);
-        },
-        exportCsv(batchDownloadInfoId) {
-            let url = "/export/exportToCsv";
-            this.exportToFile(url, batchDownloadInfoId);
         },
         exportToFile(url, batchDownloadInfoId) {
             let params = {
@@ -223,38 +231,89 @@ let app = new Vue({
             axios.get(url, params).then((res) => {
                 let exportKey = res.data.result;
                 if (exportKey != null && exportKey.length > 0) {
-                    let downloadUrl = axios.defaults.baseURL + "/download/downloadFile?exportKey=" + exportKey;
-                    window.open(downloadUrl, '_blank');
-                    this.downloadUrl = downloadUrl;
+                    let downloadUrl = this.downloadPrefix + exportKey;
+                    this.exportKey = exportKey;
+                    // document.getElementById("download-ele-a").click();
+                    this.downloadUrl(downloadUrl);
                 }
                 this.exporting = false;
             }).catch((err) => {
                 this.exporting = false;
             });
         },
-        boolToIndexList(boolList) {
+        boolToIndexList(boolList, colName) {
             let result = [];
             for (let i = 0; i < boolList.length; i++) {
-                if (boolList[i]) {
+                if (boolList[i][colName]) {
                     result.push(i);
                 }
             }
             return result;
         },
-        enableSelectedChange() {
-            for (let i = 0; i < this.dataDto.selectedIndexes.length; i++) {
-                Vue.set(this.dataDto.selectedIndexes, i, !this.enableSelectedIndexes);
-            }
-        },
-        chooseNoneSelectedIndexes() {
-            for (let i = 0; i < this.dataDto.selectedIndexes.length; i++) {
-                Vue.set(this.dataDto.selectedIndexes, i, false);
-            }
-        },
         enableGroupByChange() {
-            for (let i = 0; i < this.dataDto.groupByIndexes.length; i++) {
-                Vue.set(this.dataDto.groupByIndexes, i, false);
+            for (let i = 0; i < this.dataDto.heads.length; i++) {
+                Vue.set(this.dataDto.heads[i], "groupByChecked", false);
             }
+        },
+        changeColDisplay(bool) {
+            let heads = this.dataDto.heads;
+            if (!heads) {
+                return;
+            }
+            for (let i = 0; i < heads.length; i++) {
+                if (bool === true) {
+                    Vue.set(heads[i], "shown", true);
+                } else if (bool === false) {
+                    Vue.set(heads[i], "shown", false);
+                } else {
+                    Vue.set(heads[i], "shown", !heads[i].shown);
+                }
+            }
+        },
+        initTooltip() {
+            setTimeout(() => {
+                const tooltipTriggerList = document.querySelectorAll('.x-tooltip');
+                const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+            }, 300);
+            return true;
+        },
+        showToast(toastMsg) {
+            this.toastMsg = toastMsg;
+            let toastLiveExample = document.getElementById('liveToast');
+            let toast = new bootstrap.Toast(toastLiveExample);
+            toast.show();
+        },
+        showConfirm(title, content, action, data) {
+            this.confirmData.title = title;
+            this.confirmData.content = content;
+            this.confirmData.action = action;
+            this.confirmData.data = data;
+
+            let confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+            confirmModal.show();
+        },
+        confirmAction(action, bool, data) {
+            switch (action) {
+                case "exportMoreToFile":
+                    this.exportMoreToFile(bool, data);
+                    break;
+            }
+        },
+        exportMoreToFile(bool, data) {
+            if (!bool) {
+                this.exporting = false;
+                return;
+            }
+
+            this.exportToFile(data["exportUrl"], data["id"]);
+        },
+        downloadUrl(url) {
+            const link = document.createElement('a');
+            link.href = url;
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         },
     }
 });

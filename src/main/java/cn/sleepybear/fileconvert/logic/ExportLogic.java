@@ -34,6 +34,16 @@ public class ExportLogic {
     @Resource
     private MyConfig myConfig;
 
+    /**
+     * 预处理导出，将 dataDto 拆分为多个 dataDto，但不生成对应的文件。所有单个文件或者多个文件导出都必须要先预处理，然后将预处理信息放入缓存中 {@link GlobalVariable#BATCH_DOWNLOAD_INFO_CACHER}
+     * @param dataId dataId
+     * @param colIndexes colIndexes
+     * @param groupByIndexes groupByIndexes
+     * @param exportStart exportStart
+     * @param exportEnd exportEnd
+     * @param chooseAll chooseAll
+     * @return BatchDownloadInfoDto
+     */
     public BatchDownloadInfoDto preProcessExport(String dataId, List<Integer> colIndexes, List<Integer> groupByIndexes, Integer exportStart, Integer exportEnd, Boolean chooseAll) {
         if (exportStart == null || exportStart <= 0) {
             exportStart = 1;
@@ -42,20 +52,38 @@ public class ExportLogic {
         if (exportEnd == null || exportEnd <= 0) {
             exportEnd = 100;
         }
+        List<Integer> fixedColIndexes = CommonUtil.keepAndSetSort(colIndexes, integer -> integer != null && integer >= 0, Integer::compareTo);
+        List<Integer> fixedGroupByIndexes = CommonUtil.keepAndSetSort(groupByIndexes, integer -> integer != null && integer >= 0, Integer::compareTo);
+        List<Integer> remainGroupByIndexes = new ArrayList<>();
+        for (Integer fixedGroupByIndex : fixedGroupByIndexes) {
+            for (int i1 = 0; i1 < fixedColIndexes.size(); i1++) {
+                if (fixedGroupByIndex.equals(fixedColIndexes.get(i1))) {
+                    remainGroupByIndexes.add(i1);
+                    break;
+                }
+            }
+        }
 
-        DataDto dataDto = getExportedData(dataId, colIndexes, exportStart, exportEnd, chooseAll);
-        List<DataDto> dataDtoList = dataDto.splitByColName(groupByIndexes);
+        DataDto dataDto = getExportedData(dataId, fixedColIndexes, exportStart, exportEnd, chooseAll);
+        List<DataDto> dataDtoList = dataDto.splitByColName(remainGroupByIndexes);
         BatchDownloadInfoDto batchDownloadInfoDto = new BatchDownloadInfoDto();
         batchDownloadInfoDto.setDataId(dataDto.getId());
         batchDownloadInfoDto.setList(dataDtoList);
         batchDownloadInfoDto.setFilename(dataDto.getFilename());
-        batchDownloadInfoDto.setGroupByIndexes(groupByIndexes);
+        batchDownloadInfoDto.setGroupByIndexes(remainGroupByIndexes);
 
         batchDownloadInfoDto.setId("batch_" + CommonUtil.getRandomStr(8));
         GlobalVariable.BATCH_DOWNLOAD_INFO_CACHER.set(batchDownloadInfoDto.getId(), batchDownloadInfoDto, 1000L * 3600);
         return batchDownloadInfoDto;
     }
 
+    /**
+     * 从缓存 {@link GlobalVariable#BATCH_DOWNLOAD_INFO_CACHER} 中获取预处理的信息 {@link BatchDownloadInfoDto}，然后对每个 dataDto 进行导出形成对应的文件。<br/>
+     * 最后若生成了若干个文件，则进行压缩。将最终的文件信息放入缓存 {@link GlobalVariable#DOWNLOAD_INFO_CACHER} 中
+     * @param id BatchDownloadInfoDto 的 id
+     * @param excelTypeEnum excelTypeEnum
+     * @return {@link GlobalVariable#DOWNLOAD_INFO_CACHER} key
+     */
     public String exportToExcel(String id, ExcelTypeEnum excelTypeEnum) {
         if (StringUtils.isEmpty(id)) {
             throw new FrontException("id不能为空");
@@ -107,11 +135,7 @@ public class ExportLogic {
 
         String exportFilePath = myConfig.getExportTmpDir() + exportFilename;
         CommonUtil.ensureParentDir(exportFilePath);
-        EasyExcel.write(exportFilePath)
-                .head(dataDto.getHeadNames())
-                .excelType(excelTypeEnum)
-                .sheet("sheet1")
-                .doWrite(dataDto.getRawDataList());
+        EasyExcel.write(exportFilePath).head(dataDto.getHeadNames()).excelType(excelTypeEnum).sheet("sheet1").doWrite(dataDto.getRawDataList());
 
         log.info("导出 Excel 文件完成, dataId = {}, filename = {}, key = {}, name =  {}, 耗时 {} ms", dataDto.getId(), dataDto.getFilename(), exportKey, exportFilename, System.currentTimeMillis() - startTime);
         File file = new File(exportFilePath);
@@ -214,7 +238,7 @@ public class ExportLogic {
 
         String zipFilePath = "分组导出_%s_%s_%s.zip".formatted(midGroupByHeadNames, filename, CommonUtil.getTime());
         String exportFilePath = myConfig.getExportTmpDir() + zipFilePath;
-        String exportKey = String.valueOf(System.currentTimeMillis());
+        String exportKey = "download_" + CommonUtil.getRandomStr(8);
 
         log.info("开始压缩文件, dataId = {}, zip = {}, key = {}, fileCount = {}, size = {}", id, zipFilePath, exportKey, list.size(), CommonUtil.getFileSize(totalFileSize));
         CommonUtil.ensureParentDir(exportFilePath);
@@ -230,5 +254,14 @@ public class ExportLogic {
         long end = System.currentTimeMillis();
         log.info("压缩文件完成, dataId = {}, filename = {}, key = {}, size = {}, time = {}ms", id, zipFilePath, exportKey, downloadInfoDto.fileSizeStr(), (end - start));
         return downloadInfoDto;
+    }
+
+    public Boolean deleteDownloadFile(String downloadId) {
+        DownloadInfoDto downloadInfoDto = GlobalVariable.DOWNLOAD_INFO_CACHER.get(downloadId);
+        if (downloadInfoDto == null) {
+            throw new FrontException("缓存文件不存在！");
+        }
+        GlobalVariable.DOWNLOAD_INFO_CACHER.remove(downloadId, true);
+        return true;
     }
 }

@@ -1,15 +1,3 @@
-class DbfRecordInfoDto {
-    constructor(props = {}) {
-        this.fileDeleted = props.fileDeleted;
-        this.hexId = props.hexId;
-        this.name = props.name;
-        this.recordNums = props.recordNums;
-        this.createTime = props.createTime;
-        this.expireTime = props.expireTime;
-        this.dbfFields = props.dbfFields ? props.dbfFields.map(item => new DbfFields(item)) : [];
-    }
-}
-
 class DataSimpleInfoDto {
     constructor(props = {}) {
         this.id = props.id;
@@ -40,9 +28,6 @@ class DataDto {
         this.fixedHeads = props.fixedHeads ? props.fixedHeads.map((item) => new DataCellDto(item)) : [];
         this.colCounts = props.colCounts ? props.colCounts.map(item => item) : [];
         this.dataList = props.dataList ? props.dataList.map((item) => item ? item.map((item2) => new DataCellDto(item2)) : []) : [];
-
-        this.selectedIndexes = new Array(this.heads.length).fill(false);
-        this.groupByIndexes = new Array(this.heads.length).fill(false);
     }
 }
 
@@ -52,7 +37,8 @@ class DataCellDto {
         this.dataType = props.dataType;
         this.length = props.length;
         this.fixed = props.fixed;
-        this.checked = true;
+        this.groupByChecked = false;
+        this.shown = true;
     }
 }
 
@@ -90,5 +76,12 @@ class DbfRowsDto {
         this.name = props.name;
         this.dbfFields = props.dbfFields ? props.dbfFields.map(item => new DbfFields(item)) : [];
         this.rows = props.rows;
+    }
+}
+
+class ButtonExport {
+    constructor(name, url) {
+        this.name = name;
+        this.url = url;
     }
 }

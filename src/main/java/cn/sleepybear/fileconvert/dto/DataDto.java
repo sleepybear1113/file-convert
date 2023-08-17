@@ -36,6 +36,7 @@ public class DataDto implements Serializable {
     private Boolean hasFixedHeader;
 
     private List<List<DataCellDto>> dataList;
+    private Integer recordNums;
 
     private PageInfoDto pageInfo;
 
@@ -56,6 +57,9 @@ public class DataDto implements Serializable {
 
     public List<List<Object>> getRawDataList() {
         List<List<Object>> rawDataList = new ArrayList<>();
+        if (CollectionUtils.isEmpty(dataList)) {
+            return rawDataList;
+        }
         for (List<DataCellDto> data : dataList) {
             List<Object> rawData = new ArrayList<>();
             for (DataCellDto dataCellDto : data) {
@@ -68,6 +72,19 @@ public class DataDto implements Serializable {
 
     public DataSimpleInfoDto buildDataSimpleInfoDto() {
         DataSimpleInfoDto dataSimpleInfoDto = new DataSimpleInfoDto();
+        dataSimpleInfoDto.setHeads(heads);
+        dataSimpleInfoDto.setFilename(filename);
+        dataSimpleInfoDto.setId(id);
+        dataSimpleInfoDto.setRecordNums(dataList.size());
+        dataSimpleInfoDto.setType(type);
+        dataSimpleInfoDto.setFileDeleted(fileDeleted);
+        dataSimpleInfoDto.setCreateTime(createTime);
+        dataSimpleInfoDto.setExpireTime(expireTime);
+        return dataSimpleInfoDto;
+    }
+
+    public DataDto buildSimpleDataDto() {
+        DataDto dataSimpleInfoDto = new DataDto();
         dataSimpleInfoDto.setHeads(heads);
         dataSimpleInfoDto.setFilename(filename);
         dataSimpleInfoDto.setId(id);

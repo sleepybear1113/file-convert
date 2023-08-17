@@ -28,6 +28,11 @@ public class ExportController {
         return exportLogic.preProcessExport(dataId, CommonUtil.toList(colIndexes), CommonUtil.toList(groupByIndexes), exportStart, exportEnd, chooseAll);
     }
 
+    @RequestMapping("/export/deleteDownloadFile")
+    public Boolean deleteDownloadFile(String downloadId) {
+        return exportLogic.deleteDownloadFile(downloadId);
+    }
+
     @RequestMapping("/export/exportToExcel")
     public ResultCode<String> exportToExcel(String batchDownloadInfoId) {
         String exportKey = exportLogic.exportToExcel(batchDownloadInfoId, ExcelTypeEnum.XLSX);

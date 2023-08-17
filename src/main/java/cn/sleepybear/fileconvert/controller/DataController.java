@@ -17,13 +17,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class DataController {
 
     @RequestMapping("/data/getHeads")
-    public DataSimpleInfoDto getHeads(String dataId) {
+    public DataDto getHeads(String dataId) {
         DataDto dataDto = GlobalVariable.DATA_CACHER.get(dataId);
         if (dataDto == null) {
             return null;
         }
 
-        return dataDto.buildDataSimpleInfoDto();
+        return dataDto.buildSimpleDataDto();
     }
 
     @RequestMapping("/data/getDataList")

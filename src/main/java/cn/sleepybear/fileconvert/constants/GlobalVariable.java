@@ -31,11 +31,14 @@ public class GlobalVariable {
     static {
         DOWNLOAD_INFO_CACHER.setExpireAction((key, cacheObject, useExpireAction) -> {
             if (useExpireAction) {
-                String fullFilePath = cacheObject.getObjPure().getFullFilePath();
+                DownloadInfoDto downloadInfoDto = cacheObject.getObjPure();
+                String fullFilePath = downloadInfoDto.getFullFilePath();
                 File file = new File(fullFilePath);
                 if (file.exists()) {
                     if (!file.delete()) {
                         log.error("删除文件失败：{}", fullFilePath);
+                    } else {
+                        log.info("删除文件成功, key = {}, path = {}", downloadInfoDto.getKey(), fullFilePath);
                     }
                 }
             }

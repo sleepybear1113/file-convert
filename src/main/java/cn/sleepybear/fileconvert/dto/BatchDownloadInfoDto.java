@@ -1,6 +1,5 @@
 package cn.sleepybear.fileconvert.dto;
 
-import cn.sleepybear.fileconvert.utils.CommonUtil;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
@@ -10,7 +9,7 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * There is description
+ * 预处理的导出数据，一个 dataDto 拆分成多个
  *
  * @author sleepybear
  * @date 2023/06/22 22:40
