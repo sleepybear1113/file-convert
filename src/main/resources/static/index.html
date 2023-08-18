@@ -57,18 +57,17 @@
 
         <div class="row g-5">
             <div class="col-md-5 d-flex">
-                <label class="input-group-text input-group-sm mb-3" for="uploadFileInput">
-                    <input id="uploadFileInput" type="file" class="form-control" :accept="acceptFileTypes">
-<!--                    <input id="uploadFileInput" type="file" class="form-control" :accept="acceptFileTypes" style="display: none" onchange="console.log(document.getElementById('uploadFileInput').file[0])">-->
-<!--                    <button class="btn btn-outline-secondary" onclick="document.getElementById('uploadFileInput').click()">浏览</button>-->
-<!--                    <span>请选择Excel文件</span>-->
-                </label>
                 <label class="input-group-text input-group-sm mb-3">
                     <button class="btn btn-outline-secondary" v-if="!fileUploading" v-on:click="upload()">上传</button>
                     <button class="btn btn-secondary" type="button" disabled v-if="fileUploading">
                         <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                         <span class="visually-hidden">上传中...</span>
                     </button>
+                </label>
+                <label class="input-group-text input-group-sm mb-3" for="uploadFileInput">
+                    <input id="uploadFileInput" type="file" class="form-control" :accept="acceptFileTypes" style="display: none" @change="changeFile">
+                    <span class="text-truncate" style="max-width: 300px">{{!selectedFileName? "请选择Excel/CSV/DBF文件": selectedFileName}}</span>
+                    <button class="btn btn-outline-secondary" onclick="document.getElementById('uploadFileInput').click()">浏览</button>
                 </label>
             </div>
             <div class="col-md-4 d-flex">

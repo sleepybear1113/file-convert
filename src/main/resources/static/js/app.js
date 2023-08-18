@@ -3,6 +3,7 @@ let app = new Vue({
     data: {
         downloadPrefix: axios.defaults.baseURL + "/download/downloadFile?exportKey=",
         acceptFileTypes: ".xls,.xlsx,.dbf,.csv,.sql,.db,.sqlite",
+        selectedFileName: "",
         dataId: "",
         dataDto: new DataDto(),
         rowCount: 100,
@@ -54,6 +55,16 @@ let app = new Vue({
             this.enableSelectedIndexes = false;
             this.enableGroupByIndexes = false;
             this.exportKey = "";
+        },
+        changeFile(event) {
+            let fileInput = event.target;
+            let selectedFiles = fileInput.files;
+            if (!selectedFiles || selectedFiles.length === 0) {
+                this.selectedFileName = "";
+                return;
+            }
+            let selectedFile = selectedFiles[0];
+            this.selectedFileName = selectedFile.name;
         },
         upload() {
             let url = "/upload/file";
