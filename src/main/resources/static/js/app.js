@@ -1,6 +1,7 @@
 let app = new Vue({
     el: '#app',
     data: {
+        version: "",
         downloadPrefix: axios.defaults.baseURL + "/download/downloadFile?exportKey=",
         acceptFileTypes: ".xls,.xlsx,.dbf,.csv,.sql,.db,.sqlite",
         selectedFileName: "",
@@ -8,11 +9,9 @@ let app = new Vue({
         dataDto: new DataDto(),
         rowCount: 100,
         page: 1,
-        dbfRowsDto: new DbfRowsDto(),
         chooseAll: true,
         exportStart: 1,
         exportEnd: 100,
-        status: "",
         deleteAfterUpload: true,
         expireTimeMinutes: 60,
         fileUploading: false,
@@ -40,14 +39,20 @@ let app = new Vue({
         }
     },
     created() {
+        this.getVersion();
     },
     methods: {
+        getVersion() {
+            let url = "system/getVersion";
+            axios.get(url).then(res => {
+                this.version = res.data.result;
+            }).catch(() => {
+            });
+        },
         clear() {
             this.dataId = "";
             this.dataDto = new DataDto();
-            this.dbfRowsDto = new DbfRowsDto();
             this.chooseAll = true;
-            this.status = "";
             this.deleteAfterUpload = true;
             this.fileUploading = false;
             this.dataLoading = false;
@@ -80,20 +85,18 @@ let app = new Vue({
             formData.append("expireTimeMinutes", this.expireTimeMinutes);
 
             this.clear();
-            this.status = "上传中，请稍后...";
             this.fileUploading = true;
             this.exportKey = "";
 
             axios.post(url, formData, {
                 'Content-type': 'multipart/form-data'
             }).then(res => {
-                this.status = "";
                 this.dataId = res.data.result;
                 this.getDataList(1);
                 this.fileUploading = false;
             }).catch(err => {
                 // 出现错误时的处理
-                this.status = "上传失败，请选择其他文件";
+                showAlertWarning("上传失败，请选择其他文件");
                 this.fileUploading = false;
             });
         },

@@ -14,3 +14,4 @@ spring:
 
 my-config:
   export-tmp-dir: tmp/export/
+  version: @project.version@

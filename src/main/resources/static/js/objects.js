@@ -24,21 +24,26 @@ class DataDto {
 
         this.pageInfo = new PageInfo(props.pageInfo);
 
-        this.heads = props.heads ? props.heads.map((item) => new DataCellDto(item)) : [];
-        this.fixedHeads = props.fixedHeads ? props.fixedHeads.map((item) => new DataCellDto(item)) : [];
+        this.heads = props.heads ? props.heads.map((item) => new DataCellDto(item, true)) : [];
+        this.fixedHeads = props.fixedHeads ? props.fixedHeads.map((item) => new DataCellDto(item, true)) : [];
         this.colCounts = props.colCounts ? props.colCounts.map(item => item) : [];
         this.dataList = props.dataList ? props.dataList.map((item) => item ? item.map((item2) => new DataCellDto(item2)) : []) : [];
     }
 }
 
 class DataCellDto {
-    constructor(props = {}) {
+    constructor(props = {}, isHead) {
         this.value = props.value;
         this.dataType = props.dataType;
         this.length = props.length;
         this.fixed = props.fixed;
         this.groupByChecked = false;
         this.shown = true;
+
+        if (this.dataType === 6 && !isHead) {
+            // 日期型数据
+            this.value = parseTimeToStr(new Date(this.value).getTime());
+        }
     }
 }
 

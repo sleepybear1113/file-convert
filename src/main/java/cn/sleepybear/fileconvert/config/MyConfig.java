@@ -12,4 +12,6 @@ import org.springframework.context.annotation.Configuration;
 public class MyConfig {
     @Value("${my-config.export-tmp-dir}")
     private String exportTmpDir;
+    @Value("${my-config.version}")
+    private String version;
 }

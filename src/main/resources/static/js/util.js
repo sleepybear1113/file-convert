@@ -4,7 +4,7 @@ function parseTimeToStr(t) {
     }
 
     let date = new Date(t);
-    return `${date.getFullYear()}-${time2(date.getMonth())}-${time2(date.getDay())} ${time2(date.getHours())}:${time2(date.getMinutes())}:${time2(date.getSeconds())}`;
+    return `${date.getFullYear()}-${time2(date.getMonth() + 1)}-${time2(date.getDate())} ${time2(date.getHours())}:${time2(date.getMinutes())}:${time2(date.getSeconds())}`;
 }
 
 function time2(t) {
