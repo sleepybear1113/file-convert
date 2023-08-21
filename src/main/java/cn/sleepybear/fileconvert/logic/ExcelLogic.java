@@ -5,6 +5,7 @@ import cn.sleepybear.fileconvert.convert.StringRecords;
 import cn.sleepybear.fileconvert.convert.excel.ExcelReader;
 import cn.sleepybear.fileconvert.dto.DataDto;
 import cn.sleepybear.fileconvert.dto.FileStreamDto;
+import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.support.ExcelTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -17,7 +18,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Slf4j
-public class ExcelLogic {
+public class ExcelLogic extends BaseExportLogic {
 
     public DataDto read(FileStreamDto fileStreamDto, Constants.FileTypeEnum fileTypeEnum) {
         if (fileStreamDto == null) {
@@ -62,5 +63,17 @@ public class ExcelLogic {
         dataDto.buildFixedHeads();
         dataDto.buildColCounts();
         return dataDto;
+    }
+
+    @Override
+    public void innerExportToFile(DataDto dataDto, String type, String exportFilePath) {
+        ExcelTypeEnum excelTypeEnum = ExcelTypeEnum.XLSX;
+        for (ExcelTypeEnum value : ExcelTypeEnum.values()) {
+            if (value.getValue().equals(type)) {
+                excelTypeEnum = value;
+                break;
+            }
+        }
+        EasyExcel.write(exportFilePath).head(dataDto.getHeadNames()).excelType(excelTypeEnum).sheet("sheet1").doWrite(dataDto.getRawDataList());
     }
 }

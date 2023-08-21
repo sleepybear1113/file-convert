@@ -32,6 +32,7 @@ import java.util.Map;
  */
 @Slf4j
 public class ExcelReader {
+    public static final String DEFAULT_EXCEL_95_CHARSET = "GBK";
 
     public static StringRecords read(InputStream inputStream, ExcelTypeEnum excelTypeEnum, Boolean isExcel95) {
         if (Boolean.FALSE.equals(isExcel95)) {
@@ -65,7 +66,7 @@ public class ExcelReader {
         StringRecords stringRecords = null;
         try {
             WorkbookSettings ws = new WorkbookSettings();
-            ws.setEncoding("GBK");
+            ws.setEncoding(DEFAULT_EXCEL_95_CHARSET);
             Workbook workbook = Workbook.getWorkbook(inputStream, ws);
             Sheet sheet = workbook.getSheet(0);
 

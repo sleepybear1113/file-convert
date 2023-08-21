@@ -24,13 +24,13 @@ import java.util.List;
  */
 public class DbfWriter {
     public static void main(String[] args) {
-        write("tmp\\dbf\\test.dbf", Charset.forName("GBK"), new DataDto());
+        write("tmp\\dbf\\test.dbf", Charset.forName(DbfConverter.DEFAULT_DBF_CHARSET), new DataDto());
     }
 
     public static void test(DataDto dataDto) {
         String path = "tmp\\dbf\\test.dbf";
         new File(path).delete();
-        write(path, Charset.forName("GBK"), dataDto);
+        write(path, Charset.forName(DbfConverter.DEFAULT_DBF_CHARSET), dataDto);
     }
 
     public static void write(String path, Charset charset, DataDto dataDto) {

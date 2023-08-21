@@ -21,12 +21,12 @@ let app = new Vue({
         exportButtonList: [
             new ButtonExport("导出Excel", "/export/exportToExcel"),
             new ButtonExport("导出CSV", "/export/exportToCsv"),
-            new ButtonExport("导出Dbf", "/export/exportToDbf"),
+            new ButtonExport("导出DBF", "/export/exportToDbf"),
         ],
         exportZipButtonList: [
             new ButtonExport("导出Excel分组压缩包", "/export/exportToExcel"),
             new ButtonExport("导出CSV分组压缩包", "/export/exportToCsv"),
-            new ButtonExport("导出Dbf分组压缩包", "/export/exportToDbf"),
+            new ButtonExport("导出DBF分组压缩包", "/export/exportToDbf"),
         ],
         enableSelectedIndexes: false,
         enableGroupByIndexes: false,

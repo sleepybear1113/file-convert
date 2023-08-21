@@ -24,12 +24,14 @@ public class DbfConverter {
     public static final String TMP_DIR = "tmp/";
     public static final String DBF_TEMP_DIR = TMP_DIR + "dbf/";
 
+    public static final String DEFAULT_DBF_CHARSET = "GBK";
+
     public static DBFReader readDbf(String path) {
-        return readDbf(path, Charset.forName("GBK"));
+        return readDbf(path, Charset.forName(DbfConverter.DEFAULT_DBF_CHARSET));
     }
 
     public static DBFReader readDbf(InputStream inputStream) {
-        return readDbf(inputStream, Charset.forName("GBK"));
+        return readDbf(inputStream, Charset.forName(DbfConverter.DEFAULT_DBF_CHARSET));
     }
 
     public static DBFReader readDbf(InputStream inputStream, Charset charset) {
