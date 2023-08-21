@@ -70,19 +70,6 @@ public class DataDto implements Serializable {
         return rawDataList;
     }
 
-    public DataSimpleInfoDto buildDataSimpleInfoDto() {
-        DataSimpleInfoDto dataSimpleInfoDto = new DataSimpleInfoDto();
-        dataSimpleInfoDto.setHeads(heads);
-        dataSimpleInfoDto.setFilename(filename);
-        dataSimpleInfoDto.setId(id);
-        dataSimpleInfoDto.setRecordNums(dataList.size());
-        dataSimpleInfoDto.setType(type);
-        dataSimpleInfoDto.setFileDeleted(fileDeleted);
-        dataSimpleInfoDto.setCreateTime(createTime);
-        dataSimpleInfoDto.setExpireTime(expireTime);
-        return dataSimpleInfoDto;
-    }
-
     public DataDto buildSimpleDataDto() {
         DataDto dataSimpleInfoDto = new DataDto();
         dataSimpleInfoDto.setHeads(heads);

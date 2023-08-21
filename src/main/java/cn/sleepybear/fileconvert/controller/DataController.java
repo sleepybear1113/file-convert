@@ -2,7 +2,7 @@ package cn.sleepybear.fileconvert.controller;
 
 import cn.sleepybear.fileconvert.constants.GlobalVariable;
 import cn.sleepybear.fileconvert.dto.DataDto;
-import cn.sleepybear.fileconvert.dto.DataSimpleInfoDto;
+import cn.sleepybear.fileconvert.exception.FrontException;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -20,7 +20,7 @@ public class DataController {
     public DataDto getHeads(String dataId) {
         DataDto dataDto = GlobalVariable.DATA_CACHER.get(dataId);
         if (dataDto == null) {
-            return null;
+            throw new FrontException("文件编号的数据不存在！");
         }
 
         return dataDto.buildSimpleDataDto();
@@ -30,7 +30,7 @@ public class DataController {
     public DataDto getDataList(String dataId, Integer page, Integer rowCount) {
         DataDto dataDto = GlobalVariable.DATA_CACHER.get(dataId);
         if (dataDto == null) {
-            return null;
+            throw new FrontException("文件编号的数据不存在！");
         }
         return dataDto.subRowsDataDto(page, rowCount);
     }
