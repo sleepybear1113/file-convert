@@ -11,6 +11,14 @@ class DataSimpleInfoDto {
     }
 }
 
+class UploadFileInfoDto {
+    constructor(props = {}) {
+        this.filename = props.filename;
+        this.id = props.id;
+        this.dataId = props.dataId;
+    }
+}
+
 class DataDto {
     constructor(props = {}) {
         this.filename = props.filename;

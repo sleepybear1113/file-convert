@@ -20,7 +20,7 @@ public class PageInfoDto {
         pageInfoDto.setRowCount(rowCount);
         pageInfoDto.setTotalCount(totalCount);
         pageInfoDto.setPage(page);
-        pageInfoDto.setTotalPage((totalCount + rowCount - 1) / rowCount);
+        pageInfoDto.setTotalPage(rowCount == 0 ? 0 : (totalCount + rowCount - 1) / rowCount);
         return pageInfoDto;
     }
 }

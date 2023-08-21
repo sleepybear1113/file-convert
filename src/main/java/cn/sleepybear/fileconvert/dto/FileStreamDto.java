@@ -70,11 +70,11 @@ public class FileStreamDto implements Serializable {
     }
 
     public boolean setByteArrayInputStream(File file) {
-        try {
-            setByteArrayInputStream(new FileInputStream(file));
+        try (FileInputStream fileInputStream = new FileInputStream(file)) {
+            setByteArrayInputStream(fileInputStream);
             this.localFile = true;
             return true;
-        } catch (FileNotFoundException e) {
+        } catch (IOException e) {
             log.warn(e.getMessage(), e);
             this.errorMessage = e.getMessage();
             return false;

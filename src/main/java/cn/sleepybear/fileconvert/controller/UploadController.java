@@ -1,7 +1,7 @@
 package cn.sleepybear.fileconvert.controller;
 
-import cn.sleepybear.fileconvert.advice.ResultCode;
 import cn.sleepybear.fileconvert.constants.GlobalVariable;
+import cn.sleepybear.fileconvert.dto.UploadFileInfoDto;
 import cn.sleepybear.fileconvert.exception.FrontException;
 import cn.sleepybear.fileconvert.logic.UploadLogic;
 import jakarta.annotation.Resource;
@@ -9,6 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 /**
  * There is description
@@ -27,7 +29,7 @@ public class UploadController {
     private UploadLogic uploadLogic;
 
     @RequestMapping("/upload/file")
-    public ResultCode<String> upload(MultipartFile file, Boolean deleteAfterUpload, Integer expireTimeMinutes) {
+    public List<UploadFileInfoDto> upload(MultipartFile file, Boolean deleteAfterUpload, Integer expireTimeMinutes) {
         if (file == null || file.isEmpty()) {
             throw new FrontException("未选择文件！");
         }
@@ -35,8 +37,7 @@ public class UploadController {
             deleteAfterUpload = false;
         }
 
-        String dataId = uploadLogic.uploadFile(file, null, deleteAfterUpload, expireTimeMinutes);
-        return ResultCode.buildResult(dataId);
+        return uploadLogic.uploadFile(file, null, deleteAfterUpload, expireTimeMinutes);
     }
 
     public static void main(String[] args) {

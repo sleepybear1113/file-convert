@@ -3,9 +3,10 @@ let app = new Vue({
     data: {
         version: "",
         downloadPrefix: axios.defaults.baseURL + "/download/downloadFile?exportKey=",
-        acceptFileTypes: ".xls,.xlsx,.dbf,.csv,.sql,.db,.sqlite",
+        acceptFileTypes: ".xls,.xlsx,.dbf,.csv,.sql,.db,.sqlite,.zip",
         selectedFileName: "",
-        dataId: "",
+        uploadFileInfoDto: {},
+        uploadFileInfoDtoList: [],
         dataDto: new DataDto(),
         rowCount: 100,
         page: 1,
@@ -49,8 +50,11 @@ let app = new Vue({
             }).catch(() => {
             });
         },
-        clear() {
-            this.dataId = "";
+        clear(clearUploadFileInfo = false) {
+            if (clearUploadFileInfo) {
+                this.uploadFileInfoDto = {};
+                this.uploadFileInfoDtoList = [];
+            }
             this.dataDto = new DataDto();
             this.chooseAll = true;
             this.deleteAfterUpload = true;
@@ -84,16 +88,20 @@ let app = new Vue({
             formData.append("deleteAfterUpload", this.deleteAfterUpload);
             formData.append("expireTimeMinutes", this.expireTimeMinutes);
 
-            this.clear();
+            this.clear(true);
             this.fileUploading = true;
             this.exportKey = "";
 
             axios.post(url, formData, {
                 'Content-type': 'multipart/form-data'
             }).then(res => {
-                this.dataId = res.data.result;
+                this.uploadFileInfoDtoList = res.data.result && res.data.result.length > 0 ? res.data.result.map(item => new UploadFileInfoDto(item)) : [];
+                this.uploadFileInfoDto = this.uploadFileInfoDtoList && this.uploadFileInfoDtoList.length > 0 ? this.uploadFileInfoDtoList[0] : {};
                 this.getDataList(1);
                 this.fileUploading = false;
+                if (this.uploadFileInfoDtoList.length > 1) {
+                    showAlertSuccess("上传成功，共" + this.uploadFileInfoDtoList.length + "个文件");
+                }
             }).catch(err => {
                 // 出现错误时的处理
                 showAlertWarning("上传失败，请选择其他文件");
@@ -102,7 +110,7 @@ let app = new Vue({
         },
         getHeads(dataId) {
             let url = "/data/getHeads";
-            axios.get(url, {params: {dataId: this.dataId}}).then((res) => {
+            axios.get(url, {params: {dataId: dataId}}).then((res) => {
                 this.dataDto = new DataDto(res.data.result);
                 this.exportEnd = this.dataDto.recordNums;
             });
@@ -130,18 +138,20 @@ let app = new Vue({
             this.getDataList(this.page);
         },
         getDataList(page) {
+            if (!this.uploadFileInfoDto.dataId) {
+                return;
+            }
             let url = "/data/getDataList";
             this.page = page;
             this.validPage();
 
-            let params = {params: {dataId: this.dataId, rowCount: this.rowCount, page: this.page}};
+            let params = {params: {dataId: this.uploadFileInfoDto.dataId, rowCount: this.rowCount, page: this.page}};
             this.dataLoading = true;
             this.exportKey = "";
             axios.get(url, params).then((res) => {
                 this.clear();
                 let data = res.data.result;
                 this.dataDto = new DataDto(data);
-                this.dataId = this.dataDto.id;
                 this.exportStart = (this.dataDto.pageInfo.page - 1) * this.dataDto.pageInfo.rowCount + 1;
                 this.exportEnd = this.exportStart + this.dataDto.pageInfo.rowCount;
                 this.dataDto.recordNums = this.dataDto.pageInfo.totalCount;
@@ -150,18 +160,29 @@ let app = new Vue({
                 this.dataLoading = false;
             });
         },
+        changeFileData(info) {
+            this.uploadFileInfoDto = info;
+            this.getDataList(1);
+        },
         deleteByDataId() {
             let url = "/data/deleteByDataId";
-            let params = {params: {dataId: this.dataId}};
+            let params = {params: {dataId: this.uploadFileInfoDto.dataId}};
             axios.get(url, params).then((res) => {
                 let data = res.data.result;
-                this.dataId = "";
-                this.dataDto = new DataDto();
                 if (data) {
                     showAlertSuccess("删除成功！");
                 } else {
                     showAlertWarning("删除失败！找不到该数据或者已经删除！");
                 }
+
+                for (let i = 0; i < this.uploadFileInfoDtoList.length; i++) {
+                    if (this.uploadFileInfoDtoList[i].dataId === this.uploadFileInfoDto.dataId) {
+                        this.uploadFileInfoDtoList.splice(i, 1);
+                        break;
+                    }
+                }
+                this.uploadFileInfoDto = {};
+                this.dataDto = new DataDto();
             });
         },
         deleteDownloadFile(exportKey) {
@@ -193,7 +214,7 @@ let app = new Vue({
             let url = "/export/preProcessExport";
             let params = {
                 params: {
-                    dataId: this.dataId,
+                    dataId: this.uploadFileInfoDto.dataId,
                     colIndexes: this.boolToIndexList(this.dataDto.heads, "shown").join(","),
                     groupByIndexes: this.boolToIndexList(this.dataDto.heads, "groupByChecked").join(","),
                     fileName: null,

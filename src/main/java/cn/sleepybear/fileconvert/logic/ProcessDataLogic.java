@@ -5,7 +5,11 @@ import cn.sleepybear.fileconvert.dto.DataDto;
 import cn.sleepybear.fileconvert.dto.FileStreamDto;
 import cn.sleepybear.fileconvert.exception.FrontException;
 import jakarta.annotation.Resource;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * There is description
@@ -23,35 +27,37 @@ public class ProcessDataLogic {
     @Resource
     private ZipLogic zipLogic;
 
-    public DataDto processData(FileStreamDto fileStreamDto, Long expireTime) {
+    public List<DataDto> processData(FileStreamDto fileStreamDto, Long expireTime) {
         if (fileStreamDto == null) {
             return null;
         }
         Constants.FileTypeEnum fileTypeEnum = Constants.FileTypeEnum.getTypeByFilename(fileStreamDto.getFileType());
 
-        DataDto dataDto = null;
+        List<DataDto> dataDtoList = new ArrayList<>();
         if (Constants.FileTypeEnum.UNKNOWN.equals(fileTypeEnum)) {
             throw new FrontException("未知文件类型，无法进行读取转换！");
         } else if (Constants.FileTypeEnum.DBF.equals(fileTypeEnum)) {
-            dataDto = dbfLogic.read(fileStreamDto);
+            dataDtoList.add(dbfLogic.read(fileStreamDto));
         } else if (Constants.FileTypeEnum.EXCEL_XLS.equals(fileTypeEnum) ||
                    Constants.FileTypeEnum.EXCEL_XLSX.equals(fileTypeEnum) ||
                    Constants.FileTypeEnum.CSV.equals(fileTypeEnum)) {
-            dataDto = excelLogic.read(fileStreamDto, fileTypeEnum);
+            dataDtoList.add(excelLogic.read(fileStreamDto, fileTypeEnum));
         } else if (Constants.FileTypeEnum.SQL_MYSQL.equals(fileTypeEnum)) {
             // TODO
         } else if (Constants.FileTypeEnum.SQL_SQLITE.equals(fileTypeEnum)) {
             // TODO
         } else if (Constants.FileTypeEnum.ZIP_ZIP.equals(fileTypeEnum)) {
-            dataDto = zipLogic.read(fileStreamDto, fileTypeEnum, expireTime);
+            dataDtoList = zipLogic.read(fileStreamDto, fileTypeEnum, expireTime);
         } else {
             throw new FrontException("未知文件类型，无法进行读取转换！");
         }
 
-        if (dataDto != null) {
-            dataDto.setExpireTime(expireTime);
+        if (CollectionUtils.isNotEmpty(dataDtoList)) {
+            for (DataDto dataDto : dataDtoList) {
+                dataDto.setExpireTime(expireTime);
+            }
         }
 
-        return dataDto;
+        return dataDtoList;
     }
 }

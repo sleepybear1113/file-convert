@@ -4,6 +4,8 @@ server:
     enabled: true
 
 spring:
+  main:
+    allow-circular-references: true
   servlet:
     multipart:
       enabled: true

@@ -4,15 +4,15 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
+import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -20,8 +20,6 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 /**
  * There is description
@@ -248,13 +246,13 @@ public class CommonUtil {
     }
 
     public static void compressToZip(List<String> filePaths, String zipFilePath, Boolean deleteOriginalFiles) {
-        try (ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(zipFilePath))) {
+        try (ZipArchiveOutputStream zipOut = new ZipArchiveOutputStream(new FileOutputStream(zipFilePath))) {
             for (String filePath : filePaths) {
                 File file = new File(filePath);
                 if (file.exists()) {
                     try (FileInputStream fileIn = new FileInputStream(file)) {
-                        ZipEntry zipEntry = new ZipEntry(file.getName());
-                        zipOut.putNextEntry(zipEntry);
+                        ZipArchiveEntry zipEntry = new ZipArchiveEntry(file.getName());
+                        zipOut.putArchiveEntry(zipEntry);
 
                         byte[] buffer = new byte[10240];
                         int length;
@@ -262,7 +260,7 @@ public class CommonUtil {
                             zipOut.write(buffer, 0, length);
                         }
 
-                        zipOut.closeEntry();
+                        zipOut.closeArchiveEntry();
                     }
                 }
             }
@@ -280,6 +278,50 @@ public class CommonUtil {
         } catch (IOException e) {
             log.info("压缩文件失败", e);
         }
+    }
+
+    public static List<String> unzipZipFile(InputStream inputStream, String path) {
+        String[] encodings = new String[]{"GBK", "UTF-8"};
+        List<String> files = null;
+        for (String encoding : encodings) {
+            files = unzipZipFile(inputStream, encoding, path);
+            if (files != null) {
+                break;
+            }
+        }
+        return files;
+    }
+
+    public static List<String> unzipZipFile(InputStream inputStream, String encoding, String path) {
+        List<String> fileList = new ArrayList<>();
+
+        try {
+            byte[] buffer = new byte[1024];
+            ZipArchiveInputStream zipInputStream = new ZipArchiveInputStream(inputStream, encoding);
+            ZipArchiveEntry zipEntry = zipInputStream.getNextZipEntry();
+
+            while (zipEntry != null) {
+                String fileName = zipEntry.getName();
+                String pathname = path + File.separator + fileName;
+                CommonUtil.ensureParentDir(pathname);
+                File newFile = new File(pathname);
+                FileOutputStream fos = new FileOutputStream(newFile);
+                int length;
+                while ((length = zipInputStream.read(buffer)) > 0) {
+                    fos.write(buffer, 0, length);
+                }
+                fos.close();
+                zipEntry = zipInputStream.getNextZipEntry();
+                fileList.add(newFile.getAbsolutePath());
+            }
+
+            zipInputStream.close();
+        } catch (IOException e) {
+            log.error("使用编码 {} 解压文件失败！", encoding, e);
+            return null;
+        }
+
+        return fileList;
     }
 
     public static String getRandomStr(int length) {
