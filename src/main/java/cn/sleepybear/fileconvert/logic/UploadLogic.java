@@ -1,5 +1,6 @@
 package cn.sleepybear.fileconvert.logic;
 
+import cn.sleepybear.fileconvert.config.MyConfig;
 import cn.sleepybear.fileconvert.constants.GlobalVariable;
 import cn.sleepybear.fileconvert.convert.Constants;
 import cn.sleepybear.fileconvert.convert.dbf.DbfConverter;
@@ -7,6 +8,7 @@ import cn.sleepybear.fileconvert.dto.DataDto;
 import cn.sleepybear.fileconvert.dto.FileStreamDto;
 import cn.sleepybear.fileconvert.exception.FrontException;
 import cn.sleepybear.fileconvert.utils.CommonUtil;
+import cn.sleepybear.fileconvert.utils.SpringContextUtil;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -119,6 +121,6 @@ public class UploadLogic {
             filenamePrefix = originalFilename.substring(0, lastIndexOf);
             suffix = originalFilename.substring(lastIndexOf);
         }
-        return DbfConverter.DBF_TEMP_DIR + filenamePrefix + "-" + CommonUtil.getTime() + suffix;
+        return SpringContextUtil.getBean(MyConfig.class).getTmpDir() + filenamePrefix + "-" + CommonUtil.getTime() + suffix;
     }
 }

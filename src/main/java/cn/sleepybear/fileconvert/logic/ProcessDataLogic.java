@@ -20,6 +20,8 @@ public class ProcessDataLogic {
     private DbfLogic dbfLogic;
     @Resource
     private ExcelLogic excelLogic;
+    @Resource
+    private ZipLogic zipLogic;
 
     public DataDto processData(FileStreamDto fileStreamDto, Long expireTime) {
         if (fileStreamDto == null) {
@@ -40,6 +42,8 @@ public class ProcessDataLogic {
             // TODO
         } else if (Constants.FileTypeEnum.SQL_SQLITE.equals(fileTypeEnum)) {
             // TODO
+        } else if (Constants.FileTypeEnum.ZIP_ZIP.equals(fileTypeEnum)) {
+            dataDto = zipLogic.read(fileStreamDto, fileTypeEnum, expireTime);
         } else {
             throw new FrontException("未知文件类型，无法进行读取转换！");
         }

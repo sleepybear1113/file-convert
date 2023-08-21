@@ -10,8 +10,12 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @Data
 public class MyConfig {
+    @Value("${my-config.tmp-dir}")
+    private String tmpDir;
     @Value("${my-config.export-tmp-dir}")
     private String exportTmpDir;
+    @Value("${my-config.zip-tmp-dir}")
+    private String zipTmpDir;
     @Value("${my-config.version}")
     private String version;
 }

@@ -41,6 +41,10 @@ public class Constants {
         DBF(1101, ".dbf", "DBF", "DBF文件"),
         SQL_MYSQL(1201, ".sql", "MySQL", "MySQL文件"),
         SQL_SQLITE(1202, ".sql", "SQLite", "SQLite文件"),
+        ZIP_ZIP(9001, ".zip", "ZIP压缩文件", "ZIP文件"),
+        ZIP_7_ZIP(9002, ".7z", "7-ZIP压缩文件", "7-ZIP文件"),
+        ZIP_RAR(9003, ".rar", "RAR压缩文件", "RAR文件"),
+        ZIP_TAR_GZ(9003, ".tar.gz", "tar.gz压缩文件", "tar.gz压缩文件"),
         ;
         private final Integer type;
         private final String suffix;

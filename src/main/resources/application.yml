@@ -13,5 +13,7 @@ spring:
       max-request-size: 30MB
 
 my-config:
+  tmp-dir: tmp/
   export-tmp-dir: tmp/export/
+  zip-tmp-dir: tmp/zip/
   version: @project.version@
