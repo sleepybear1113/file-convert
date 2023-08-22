@@ -24,6 +24,7 @@ public class DataDto implements Serializable {
     public static final String REPLACE_CHAR_REGEX = "[^\\p{L}\\p{N}_]";
 
     private String id;
+    private String totalDataId;
     private String filename;
     private Integer type;
     private Boolean fileDeleted;
@@ -174,6 +175,7 @@ public class DataDto implements Serializable {
         DataDto dataDto = new DataDto();
         dataDto.setFilename(filename);
         dataDto.setId(id);
+        dataDto.setTotalDataId(totalDataId);
         dataDto.setType(type);
         dataDto.setFileDeleted(fileDeleted);
         dataDto.setCreateTime(createTime);

@@ -2,10 +2,7 @@ package cn.sleepybear.fileconvert.logic;
 
 import cn.sleepybear.fileconvert.config.MyConfig;
 import cn.sleepybear.fileconvert.constants.GlobalVariable;
-import cn.sleepybear.fileconvert.dto.BatchDownloadInfoDto;
-import cn.sleepybear.fileconvert.dto.DataCellDto;
-import cn.sleepybear.fileconvert.dto.DataDto;
-import cn.sleepybear.fileconvert.dto.DownloadInfoDto;
+import cn.sleepybear.fileconvert.dto.*;
 import cn.sleepybear.fileconvert.exception.FrontException;
 import cn.sleepybear.fileconvert.utils.CommonUtil;
 import com.alibaba.excel.support.ExcelTypeEnum;
@@ -17,7 +14,9 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * There is description
@@ -37,7 +36,7 @@ public class ExportLogic {
 
     /**
      * 预处理导出，将 dataDto 拆分为多个 dataDto，但不生成对应的文件。所有单个文件或者多个文件导出都必须要先预处理，然后将预处理信息放入缓存中 {@link GlobalVariable#BATCH_DOWNLOAD_INFO_CACHER}
-     * @param dataId dataId
+     * @param idList 格式为 {@link TotalDataDto#getId()}@{@link DataDto#getId()}，如 xxx@xxx,ccc@ccc,zzz@zzz
      * @param colIndexes colIndexes
      * @param groupByIndexes groupByIndexes
      * @param exportStart exportStart
@@ -45,8 +44,8 @@ public class ExportLogic {
      * @param chooseAll chooseAll
      * @return BatchDownloadInfoDto
      */
-    public BatchDownloadInfoDto preProcessExport(String dataId, List<String> dataIdList, List<Integer> colIndexes, List<Integer> groupByIndexes, Integer exportStart, Integer exportEnd, Boolean chooseAll) {
-        if (CollectionUtils.isEmpty(dataIdList)) {
+    public BatchDownloadInfoDto preProcessExport(List<String> idList, List<Integer> colIndexes, List<Integer> groupByIndexes, Integer exportStart, Integer exportEnd, Boolean chooseAll) {
+        if (CollectionUtils.isEmpty(idList)) {
             throw new FrontException("未选择导出文件！");
         }
         if (exportStart == null || exportStart <= 0) {
@@ -67,10 +66,14 @@ public class ExportLogic {
                 }
             }
         }
+        if (CollectionUtils.size(idList) > 1) {
+            fixedColIndexes = new ArrayList<>();
+        }
 
+        // 对每个 dataId 进行预处理形成 dataDtoList
         List<DataDto> dataDtoList = new ArrayList<>();
-        for (String dataId1 : dataIdList) {
-            DataDto dataDto = getExportedData(dataId1, fixedColIndexes, exportStart, exportEnd, chooseAll);
+        for (String id : idList) {
+            DataDto dataDto = getExportedData(id, fixedColIndexes, exportStart, exportEnd, chooseAll);
             if (dataDto != null) {
                 dataDtoList.add(dataDto);
             }
@@ -79,15 +82,26 @@ public class ExportLogic {
             throw new FrontException("导出数据为空！");
         }
 
-        DataDto dataDto = dataDtoList.get(0);
-        if (CollectionUtils.size(dataDtoList) == 1) {
-            dataDtoList = dataDto.splitByColName(remainGroupByIndexes);
-        }
         BatchDownloadInfoDto batchDownloadInfoDto = new BatchDownloadInfoDto();
-        batchDownloadInfoDto.setDataId(dataDto.getId());
+        DataDto dataDto = dataDtoList.get(0);
+        if (CollectionUtils.size(idList) == 1) {
+            // 如果只有一组数据, 那么可以进行分组导出
+            dataDtoList = dataDto.splitByColName(remainGroupByIndexes);
+            batchDownloadInfoDto.setGroupByIndexes(remainGroupByIndexes);
+            batchDownloadInfoDto.setFilename(dataDto.getFilename());
+        } else {
+            // 如果不止一组数据，那么设置文件名为上传的压缩包名
+            Set<String> totalDataDtoIdSet = new HashSet<>();
+            for (DataDto dto : dataDtoList) {
+                totalDataDtoIdSet.add(dto.getTotalDataId());
+            }
+            if (totalDataDtoIdSet.size() == 1) {
+                batchDownloadInfoDto.setFilename(TotalDataDto.getById(totalDataDtoIdSet.iterator().next()).getFilename());
+            } else {
+                batchDownloadInfoDto.setFilename("多文件导出_" + CommonUtil.getTime());
+            }
+        }
         batchDownloadInfoDto.setList(dataDtoList);
-        batchDownloadInfoDto.setFilename(dataDto.getFilename());
-        batchDownloadInfoDto.setGroupByIndexes(remainGroupByIndexes);
 
         batchDownloadInfoDto.setId("batch_" + CommonUtil.getRandomStr(8));
         GlobalVariable.BATCH_DOWNLOAD_INFO_CACHER.set(batchDownloadInfoDto.getId(), batchDownloadInfoDto, 1000L * 3600);
@@ -128,10 +142,11 @@ public class ExportLogic {
         }
 
         // 如果有多组数据, 则压缩后导出
-        String midGroupByHeadNames = dataDtoList.get(0).copy(batchDownloadInfoDto.getGroupByIndexes()).getHeadNameStr("_");
+        String midGroupByHeadNames = CollectionUtils.isEmpty(batchDownloadInfoDto.getGroupByIndexes()) ? "" : dataDtoList.get(0).copy(batchDownloadInfoDto.getGroupByIndexes()).getHeadNameStr("_");
         long start = System.currentTimeMillis();
         List<DownloadInfoDto> downloadInfoDtoList = new ArrayList<>();
         for (DataDto dto : dataDtoList) {
+            // 先对每个文件进行导出
             DownloadInfoDto downloadInfoDto = baseExportLogic.exportDataDtoToFile(dto, myConfig.getExportTmpDir(), exportFileType);
             downloadInfoDtoList.add(downloadInfoDto);
         }
@@ -152,12 +167,8 @@ public class ExportLogic {
         return batchDownloadInfoDto;
     }
 
-    public DataDto getExportedData(String dataId, List<Integer> colIndexes, Integer exportStart, Integer exportEnd, Boolean chooseAll) {
-        DataDto cachedDataDto = GlobalVariable.DATA_CACHER.get(dataId);
-        if (cachedDataDto == null) {
-            log.info("导出 Excel 文件失败, dataId = {} 不存在", dataId);
-            return null;
-        }
+    public DataDto getExportedData(String id, List<Integer> colIndexes, Integer exportStart, Integer exportEnd, Boolean chooseAll) {
+        DataDto cachedDataDto = TotalDataDto.getDataDtoById(id);
 
         if (exportStart == null || exportStart <= 0) {
             exportStart = 1;

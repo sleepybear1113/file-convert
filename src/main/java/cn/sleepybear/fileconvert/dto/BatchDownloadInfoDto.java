@@ -6,6 +6,7 @@ import org.apache.commons.collections4.CollectionUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -21,6 +22,7 @@ public class BatchDownloadInfoDto implements Serializable {
 
     private String id;
     private String dataId;
+    private List<String> dataIdList = new ArrayList<>();
     private String filename;
     private List<Integer> groupByIndexes;
     @JsonIgnore
@@ -33,6 +35,10 @@ public class BatchDownloadInfoDto implements Serializable {
         this.dataDtoCount = CollectionUtils.size(list);
         if (CollectionUtils.isNotEmpty(list)) {
             this.totalDataCount = list.stream().mapToInt(dataDto -> CollectionUtils.size(dataDto.getDataList())).sum();
+
+            for (DataDto dataDto : list) {
+                dataIdList.add(dataDto.getId());
+            }
         }
     }
 }

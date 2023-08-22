@@ -3,7 +3,6 @@ package cn.sleepybear.fileconvert.test;
 import cn.sleepybear.fileconvert.utils.CommonUtil;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -21,7 +20,7 @@ public class Test {
         testZip();
     }
 
-    public static void testZip() throws FileNotFoundException {
+    public static void testZip() {
         String path = "E:\\工作文档\\DBF\\555.zip";
 //        CommonUtil.unzipZipFile(new FileInputStream(path), "tmp/");
     }

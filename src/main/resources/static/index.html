@@ -77,8 +77,8 @@
             </div>
             <div class="col-md-4 d-flex">
                 <label class="input-group-text input-group-sm mb-3" for="dataId">
-                    文件编号：<input class="form-control" id="dataId" v-model="uploadFileInfoDto.dataId">
-                    <button class="btn btn-outline-secondary" @click="getDataList(1)" :disabled="dataLoading">获取数据</button>
+                    文件编号：<input class="form-control" id="dataId" v-model="inputFullId">
+                    <button class="btn btn-outline-secondary" @click="getDataList(1, true)" :disabled="dataLoading">获取数据</button>
                 </label>
             </div>
             <div class="col-md-3">
@@ -135,7 +135,7 @@
             <hr>
         </div>
 
-        <div class="accordion" id="accordionPanelsStayOpenExample" v-if="uploadFileInfoDtoList && uploadFileInfoDtoList.length > 1">
+        <div class="accordion" id="accordionPanelsStayOpenExample" v-if="totalUploadFileInfoDto.uploadFileInfoDtoList && totalUploadFileInfoDto.uploadFileInfoDtoList.length > 1">
             <div class="accordion-item">
                 <h2 class="accordion-header">
                     <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseOne" aria-expanded="true" aria-controls="panelsStayOpen-collapseOne">
@@ -144,8 +144,8 @@
                 </h2>
                 <div id="panelsStayOpen-collapseOne" class="accordion-collapse collapse show">
                     <div class="accordion-body" style="flex-wrap: wrap">
-                        <button v-if="!enableExportZip" class="btn btn-outline-secondary" v-for="info in uploadFileInfoDtoList" @click="changeFileData(info)">{{info.filename}}</button>
-                        <button v-if="enableExportZip" class="btn btn-outline-secondary" :class="info.checked? 'active': ''" data-bs-toggle="button" v-for="info in uploadFileInfoDtoList" @click="info.checked = !info.checked">{{info.filename}}</button>
+                        <button v-if="!enableExportZip" class="btn btn-outline-secondary" v-for="info in totalUploadFileInfoDto.uploadFileInfoDtoList" @click="changeFileData(info)">{{info.filename}}</button>
+                        <button v-if="enableExportZip" class="btn btn-outline-secondary" :class="info.checked? 'active': ''" data-bs-toggle="button" v-for="info in totalUploadFileInfoDto.uploadFileInfoDtoList" @click="info.checked = !info.checked">{{info.filename}}</button>
                     </div>
                     <hr>
                     <div style="flex-wrap: wrap">

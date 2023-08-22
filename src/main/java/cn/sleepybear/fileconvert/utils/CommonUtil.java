@@ -331,35 +331,6 @@ public class CommonUtil {
         return fileList;
     }
 
-//    public static List<FileStreamDto> unzipZipFile(InputStream inputStream, String encoding) {
-//        List<byte[]> fileList = new ArrayList<>();
-//
-//        try {
-//            byte[] buffer = new byte[1024];
-//            ZipArchiveInputStream zipInputStream = new ZipArchiveInputStream(inputStream, encoding);
-//            ZipArchiveEntry zipEntry = zipInputStream.getNextZipEntry();
-//
-//            while (zipEntry != null) {
-//                String fileName = zipEntry.getName();
-//                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-//                int length;
-//                while ((length = zipInputStream.read(buffer)) > 0) {
-//                    baos.write(buffer, 0, length);
-//                }
-//                baos.close();
-//                zipEntry = zipInputStream.getNextZipEntry();
-//                fileList.add(baos.toByteArray());
-//            }
-//
-//            zipInputStream.close();
-//        } catch (IOException e) {
-//            log.error("使用编码 {} 解压文件失败！", encoding, e);
-//            return null;
-//        }
-//
-//        return fileList;
-//    }
-
     public static String getRandomStr(int length) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < length; i++) {

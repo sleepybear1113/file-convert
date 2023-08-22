@@ -6,11 +6,13 @@ import cn.sleepybear.fileconvert.convert.dbf.DbfRecord;
 import cn.sleepybear.fileconvert.convert.dbf.DbfWriter;
 import cn.sleepybear.fileconvert.dto.DataCellDto;
 import cn.sleepybear.fileconvert.dto.DataDto;
+import cn.sleepybear.fileconvert.dto.TotalDataDto;
 import cn.sleepybear.fileconvert.dto.FileStreamDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -23,7 +25,7 @@ import java.util.List;
 @Slf4j
 public class DbfLogic extends BaseExportLogic {
 
-    public DataDto read(FileStreamDto fileStreamDto) {
+    public TotalDataDto read(FileStreamDto fileStreamDto) {
         if (fileStreamDto == null) {
             return null;
         }
@@ -43,7 +45,12 @@ public class DbfLogic extends BaseExportLogic {
         dataDto.setHeads(headList);
         dataDto.buildFixedHeads();
         dataDto.buildColCounts();
-        return dataDto;
+
+        TotalDataDto totalDataDto = new TotalDataDto();
+        totalDataDto.setId(fileStreamDto.getId());
+        totalDataDto.setFilename(fileStreamDto.getOriginalFilename());
+        totalDataDto.setList(new ArrayList<>(List.of(dataDto)));
+        return totalDataDto;
     }
 
     @Override

@@ -3,7 +3,7 @@ package cn.sleepybear.fileconvert.constants;
 import cn.sleepybear.cacher.Cacher;
 import cn.sleepybear.cacher.CacherBuilder;
 import cn.sleepybear.fileconvert.dto.BatchDownloadInfoDto;
-import cn.sleepybear.fileconvert.dto.DataDto;
+import cn.sleepybear.fileconvert.dto.TotalDataDto;
 import cn.sleepybear.fileconvert.dto.DownloadInfoDto;
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,7 +25,7 @@ public class GlobalVariable {
         return t;
     }, new ThreadPoolExecutor.DiscardPolicy());
 
-    public static final Cacher<String, DataDto> DATA_CACHER = new CacherBuilder<String, DataDto>().scheduleName("DATA_CACHER").delay(30, TimeUnit.SECONDS).build();
+    public static final Cacher<String, TotalDataDto> DATA_TOTAL_CACHER = new CacherBuilder<String, TotalDataDto>().scheduleName("DATA_TOTAL_CACHER").delay(30, TimeUnit.SECONDS).build();
     public static final Cacher<String, DownloadInfoDto> DOWNLOAD_INFO_CACHER = new CacherBuilder<String, DownloadInfoDto>().scheduleName("DOWNLOAD_INFO_CACHER").delay(30, TimeUnit.SECONDS).build();
 
     static {

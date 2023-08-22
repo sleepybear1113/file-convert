@@ -2,7 +2,8 @@ package cn.sleepybear.fileconvert.controller;
 
 import cn.sleepybear.fileconvert.constants.GlobalVariable;
 import cn.sleepybear.fileconvert.dto.DataDto;
-import cn.sleepybear.fileconvert.exception.FrontException;
+import cn.sleepybear.fileconvert.dto.TotalDataDto;
+import cn.sleepybear.fileconvert.dto.TotalUploadFileInfoDto;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -17,27 +18,25 @@ import org.springframework.web.bind.annotation.RestController;
 public class DataController {
 
     @RequestMapping("/data/getHeads")
-    public DataDto getHeads(String dataId) {
-        DataDto dataDto = GlobalVariable.DATA_CACHER.get(dataId);
-        if (dataDto == null) {
-            throw new FrontException("文件编号的数据不存在！");
-        }
-
+    public DataDto getHeads(String id) {
+        DataDto dataDto = TotalDataDto.getDataDtoById(id);
         return dataDto.buildSimpleDataDto();
     }
 
     @RequestMapping("/data/getDataList")
-    public DataDto getDataList(String dataId, Integer page, Integer rowCount) {
-        DataDto dataDto = GlobalVariable.DATA_CACHER.get(dataId);
-        if (dataDto == null) {
-            throw new FrontException("文件编号的数据不存在！");
-        }
+    public DataDto getDataList(String id, Integer page, Integer rowCount) {
+        DataDto dataDto = TotalDataDto.getDataDtoById(id);
         return dataDto.subRowsDataDto(page, rowCount);
     }
 
+    @RequestMapping("/data/getUploadFileInfoDto")
+    public TotalUploadFileInfoDto getUploadFileInfoDto(String id) {
+        TotalDataDto totalDataDto = TotalDataDto.getById(id);
+        return TotalUploadFileInfoDto.buildTotalUploadFileInfoDto(totalDataDto);
+    }
+
     @RequestMapping("/data/deleteByDataId")
-    public Boolean getDataList(String dataId) {
-        DataDto dataDto = GlobalVariable.DATA_CACHER.remove(dataId);
-        return dataDto != null;
+    public Boolean getDataList(String id) {
+        return TotalDataDto.deleteDataDtoById(id);
     }
 }

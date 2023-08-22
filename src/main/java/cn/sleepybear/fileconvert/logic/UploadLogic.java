@@ -1,17 +1,15 @@
 package cn.sleepybear.fileconvert.logic;
 
 import cn.sleepybear.fileconvert.config.MyConfig;
-import cn.sleepybear.fileconvert.constants.GlobalVariable;
 import cn.sleepybear.fileconvert.convert.Constants;
-import cn.sleepybear.fileconvert.dto.DataDto;
 import cn.sleepybear.fileconvert.dto.FileStreamDto;
-import cn.sleepybear.fileconvert.dto.UploadFileInfoDto;
+import cn.sleepybear.fileconvert.dto.TotalDataDto;
+import cn.sleepybear.fileconvert.dto.TotalUploadFileInfoDto;
 import cn.sleepybear.fileconvert.exception.FrontException;
 import cn.sleepybear.fileconvert.utils.CommonUtil;
 import cn.sleepybear.fileconvert.utils.SpringContextUtil;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,8 +17,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 
 /**
@@ -38,7 +34,7 @@ public class UploadLogic {
     @Resource
     private ProcessDataLogic processDataLogic;
 
-    public List<UploadFileInfoDto> uploadFile(MultipartFile file, String fileType, Boolean deleteAfterUpload, Integer expireTimeMinutes) {
+    public TotalUploadFileInfoDto uploadFile(MultipartFile file, String fileType, Boolean deleteAfterUpload, Integer expireTimeMinutes) {
         String originalFilename = file.getOriginalFilename();
         if (originalFilename == null || StringUtils.isBlank(originalFilename)) {
             originalFilename = "null";
@@ -59,24 +55,9 @@ public class UploadLogic {
         }
 
         FileStreamDto fileStreamDto = getInputStream(file, fileType, deleteAfterUpload);
-        List<DataDto> dataDtoList = processDataLogic.processData(fileStreamDto, expireTime);
-        List<UploadFileInfoDto> uploadFileInfoDtos = new ArrayList<>();
-        if (CollectionUtils.isNotEmpty(dataDtoList)) {
-            for (DataDto dataDto : dataDtoList) {
-                String id = dataDto.getId();
-                GlobalVariable.DATA_CACHER.set(id, dataDto, expireTime);
+        TotalDataDto totalDataDto = processDataLogic.processData(fileStreamDto, expireTime);
 
-                UploadFileInfoDto uploadFileInfoDto = new UploadFileInfoDto();
-                uploadFileInfoDto.setDataId(id);
-                uploadFileInfoDto.setFilename(dataDto.getFilename());
-                uploadFileInfoDtos.add(uploadFileInfoDto);
-            }
-        }
-
-        for (int i = 0; i < uploadFileInfoDtos.size(); i++) {
-            uploadFileInfoDtos.get(i).setId(i);
-        }
-        return uploadFileInfoDtos;
+        return TotalUploadFileInfoDto.buildTotalUploadFileInfoDto(totalDataDto);
     }
 
     public FileStreamDto getInputStream(MultipartFile file, String fileType, Boolean deleteAfterUpload) {

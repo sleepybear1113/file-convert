@@ -2,11 +2,12 @@ let app = new Vue({
     el: '#app',
     data: {
         version: "",
+        inputFullId: "",
         downloadPrefix: axios.defaults.baseURL + "/download/downloadFile?exportKey=",
         acceptFileTypes: ".xls,.xlsx,.dbf,.csv,.sql,.db,.sqlite,.zip",
         selectedFileName: "",
-        uploadFileInfoDto: {},
-        uploadFileInfoDtoList: [],
+        uploadFileInfoDto: new UploadFileInfoDto(),
+        totalUploadFileInfoDto: {},
         dataDto: new DataDto(),
         rowCount: 100,
         page: 1,
@@ -53,8 +54,8 @@ let app = new Vue({
         },
         clear(clearUploadFileInfo = false) {
             if (clearUploadFileInfo) {
-                this.uploadFileInfoDto = {};
-                this.uploadFileInfoDtoList = [];
+                this.totalUploadFileInfoDto = {};
+                this.changeCurrentUploadFileInfo(null);
             }
             this.dataDto = new DataDto();
             this.chooseAll = true;
@@ -96,12 +97,14 @@ let app = new Vue({
             axios.post(url, formData, {
                 'Content-type': 'multipart/form-data'
             }).then(res => {
-                this.uploadFileInfoDtoList = res.data.result && res.data.result.length > 0 ? res.data.result.map(item => new UploadFileInfoDto(item)) : [];
-                this.uploadFileInfoDto = this.uploadFileInfoDtoList && this.uploadFileInfoDtoList.length > 0 ? this.uploadFileInfoDtoList[0] : {};
+                this.totalUploadFileInfoDto = new TotalUploadFileInfoDto(res.data.result);
+                if (this.totalUploadFileInfoDto.uploadFileInfoDtoList && this.totalUploadFileInfoDto.uploadFileInfoDtoList.length > 0) {
+                    this.changeCurrentUploadFileInfo(this.totalUploadFileInfoDto.uploadFileInfoDtoList[0])
+                }
                 this.getDataList(1);
                 this.fileUploading = false;
-                if (this.uploadFileInfoDtoList.length > 1) {
-                    showAlertSuccess("上传成功，共" + this.uploadFileInfoDtoList.length + "个文件");
+                if (this.totalUploadFileInfoDto.uploadFileInfoDtoList && this.totalUploadFileInfoDto.uploadFileInfoDtoList.length > 1) {
+                    showAlertSuccess("上传成功，共" + this.totalUploadFileInfoDto.uploadFileInfoDtoList.length + "个文件");
                 }
             }).catch(err => {
                 // 出现错误时的处理
@@ -109,9 +112,23 @@ let app = new Vue({
                 this.fileUploading = false;
             });
         },
+        getUploadFileInfoDto() {
+            let url = "/data/getUploadFileInfoDto";
+            axios.get(url, {params: {id: this.inputFullId}}).then((res) => {
+                this.totalUploadFileInfoDto = new TotalUploadFileInfoDto(res.data.result);
+            });
+        },
+        changeCurrentUploadFileInfo(uploadFileInfoDto) {
+            if (!uploadFileInfoDto) {
+                this.uploadFileInfoDto = new UploadFileInfoDto();
+            } else {
+                this.uploadFileInfoDto = uploadFileInfoDto;
+            }
+            this.inputFullId = this.uploadFileInfoDto.getFullId();
+        },
         getHeads(dataId) {
             let url = "/data/getHeads";
-            axios.get(url, {params: {dataId: dataId}}).then((res) => {
+            axios.get(url, {params: {id: this.inputFullId}}).then((res) => {
                 this.dataDto = new DataDto(res.data.result);
                 this.exportEnd = this.dataDto.recordNums;
             });
@@ -138,15 +155,15 @@ let app = new Vue({
             this.validPage();
             this.getDataList(this.page);
         },
-        getDataList(page) {
-            if (!this.uploadFileInfoDto.dataId) {
+        getDataList(page, newFetch = false) {
+            if (!this.inputFullId) {
                 return;
             }
             let url = "/data/getDataList";
             this.page = page;
             this.validPage();
 
-            let params = {params: {dataId: this.uploadFileInfoDto.dataId, rowCount: this.rowCount, page: this.page}};
+            let params = {params: {id: this.inputFullId, rowCount: this.rowCount, page: this.page}};
             this.dataLoading = true;
             this.exportKey = "";
             axios.get(url, params).then((res) => {
@@ -157,17 +174,23 @@ let app = new Vue({
                 this.exportEnd = this.exportStart + this.dataDto.pageInfo.rowCount;
                 this.dataDto.recordNums = this.dataDto.pageInfo.totalCount;
                 this.dataLoading = false;
+
+                this.changeCurrentUploadFileInfo(this.dataDto.getUploadFileInfoDto());
+
+                if (newFetch) {
+                    this.getUploadFileInfoDto();
+                }
             }).catch((err) => {
                 this.dataLoading = false;
             });
         },
         changeFileData(info) {
-            this.uploadFileInfoDto = info;
+            this.changeCurrentUploadFileInfo(info);
             this.getDataList(1);
         },
         deleteByDataId() {
             let url = "/data/deleteByDataId";
-            let params = {params: {dataId: this.uploadFileInfoDto.dataId}};
+            let params = {params: {id: this.inputFullId}};
             axios.get(url, params).then((res) => {
                 let data = res.data.result;
                 if (data) {
@@ -176,13 +199,17 @@ let app = new Vue({
                     showAlertWarning("删除失败！找不到该数据或者已经删除！");
                 }
 
-                for (let i = 0; i < this.uploadFileInfoDtoList.length; i++) {
-                    if (this.uploadFileInfoDtoList[i].dataId === this.uploadFileInfoDto.dataId) {
-                        this.uploadFileInfoDtoList.splice(i, 1);
-                        break;
+                let arr = this.totalUploadFileInfoDto.uploadFileInfoDtoList;
+                if (arr && arr.length > 0) {
+                    for (let i = 0; i < arr.length; i++) {
+                        if (arr[i].dataId === this.uploadFileInfoDto.dataId) {
+                            Vue.slice(arr, i, 1);
+                            break;
+                        }
                     }
                 }
-                this.uploadFileInfoDto = {};
+
+                this.changeCurrentUploadFileInfo(null);
                 this.dataDto = new DataDto();
             });
         },
@@ -213,11 +240,26 @@ let app = new Vue({
 
             this.exporting = true;
             let url = "/export/preProcessExport";
+
+            let dataIdList = this.inputFullId;
+            if (this.enableExportZip) {
+                if (this.totalUploadFileInfoDto.uploadFileInfoDtoList && this.totalUploadFileInfoDto.uploadFileInfoDtoList.length > 0) {
+                    let uploadFileInfoDtoList = this.totalUploadFileInfoDto.uploadFileInfoDtoList;
+                    let dataListArr = [];
+                    for (let i = 0; i < uploadFileInfoDtoList.length; i++) {
+                        let item = uploadFileInfoDtoList[i];
+                        if (item.checked) {
+                            dataListArr.push(item.getFullId());
+                        }
+                    }
+                    dataIdList = dataListArr.join(",");
+                }
+            }
             let params = {
                 params: {
-                    dataId: this.uploadFileInfoDto.dataId,
-                    colIndexes: this.boolToIndexList(this.dataDto.heads, "shown").join(","),
-                    groupByIndexes: this.boolToIndexList(this.dataDto.heads, "groupByChecked").join(","),
+                    dataIdList: dataIdList,
+                    colIndexes: this.enableExportZip ? "" : this.boolToIndexList(this.dataDto.heads, "shown").join(","),
+                    groupByIndexes: this.enableExportZip ? "" : this.boolToIndexList(this.dataDto.heads, "groupByChecked").join(","),
                     fileName: null,
                     exportStart: this.exportStart,
                     exportEnd: this.exportEnd,
@@ -277,11 +319,15 @@ let app = new Vue({
                 this.exporting = false;
             });
         },
-        boolToIndexList(boolList, colName) {
+        boolToIndexList(boolList, colName, targetName = null) {
             let result = [];
             for (let i = 0; i < boolList.length; i++) {
                 if (boolList[i][colName]) {
-                    result.push(i);
+                    if (!targetName) {
+                        result.push(i);
+                    } else {
+                        result.push(boolList[i][targetName])
+                    }
                 }
             }
             return result;

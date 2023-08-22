@@ -4,11 +4,15 @@ import cn.sleepybear.fileconvert.convert.Constants;
 import cn.sleepybear.fileconvert.convert.StringRecords;
 import cn.sleepybear.fileconvert.convert.excel.ExcelReader;
 import cn.sleepybear.fileconvert.dto.DataDto;
+import cn.sleepybear.fileconvert.dto.TotalDataDto;
 import cn.sleepybear.fileconvert.dto.FileStreamDto;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.support.ExcelTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * There is description
@@ -20,7 +24,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class ExcelLogic extends BaseExportLogic {
 
-    public DataDto read(FileStreamDto fileStreamDto, Constants.FileTypeEnum fileTypeEnum) {
+    public TotalDataDto read(FileStreamDto fileStreamDto, Constants.FileTypeEnum fileTypeEnum) {
         if (fileStreamDto == null) {
             return null;
         }
@@ -62,7 +66,12 @@ public class ExcelLogic extends BaseExportLogic {
 
         dataDto.buildFixedHeads();
         dataDto.buildColCounts();
-        return dataDto;
+
+        TotalDataDto totalDataDto = new TotalDataDto();
+        totalDataDto.setId(fileStreamDto.getId());
+        totalDataDto.setFilename(fileStreamDto.getOriginalFilename());
+        totalDataDto.setList(new ArrayList<>(List.of(dataDto)));
+        return totalDataDto;
     }
 
     @Override

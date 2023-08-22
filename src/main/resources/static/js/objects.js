@@ -16,7 +16,23 @@ class UploadFileInfoDto {
         this.filename = props.filename;
         this.id = props.id;
         this.dataId = props.dataId;
+        this.totalDataId = props.totalDataId;
         this.checked = true;
+    }
+
+    getFullId() {
+        if (!this.totalDataId === null || !this.totalDataId) {
+            return "";
+        }
+        return this.totalDataId + "@" + this.dataId;
+    }
+}
+
+class TotalUploadFileInfoDto {
+    constructor(props = {}) {
+        this.filename = props.filename;
+        this.totalDataId = props.totalDataId;
+        this.uploadFileInfoDtoList = props.uploadFileInfoDtoList ? props.uploadFileInfoDtoList.map(item => new UploadFileInfoDto(item)) : [];
     }
 }
 
@@ -24,6 +40,7 @@ class DataDto {
     constructor(props = {}) {
         this.filename = props.filename;
         this.id = props.id;
+        this.totalDataId = props.totalDataId;
         this.type = props.type;
         this.fileDeleted = props.fileDeleted;
         this.recordNums = props.recordNums;
@@ -37,6 +54,23 @@ class DataDto {
         this.fixedHeads = props.fixedHeads ? props.fixedHeads.map((item) => new DataCellDto(item, true)) : [];
         this.colCounts = props.colCounts ? props.colCounts.map(item => item) : [];
         this.dataList = props.dataList ? props.dataList.map((item) => item ? item.map((item2) => new DataCellDto(item2)) : []) : [];
+    }
+
+    getUploadFileInfoDto() {
+        return new UploadFileInfoDto({
+            filename: this.filename,
+            dataId: this.id,
+            totalDataId: this.totalDataId
+        });
+    }
+}
+
+class TotalDataDto {
+    constructor(props = {}) {
+        this.filename = props.filename;
+        this.id = props.id;
+
+        this.dataDto = props.dataDto ? props.dataDto.map((item) => new DataDto(item)) : [];
     }
 }
 

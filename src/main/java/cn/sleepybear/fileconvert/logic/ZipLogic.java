@@ -2,7 +2,7 @@ package cn.sleepybear.fileconvert.logic;
 
 import cn.sleepybear.fileconvert.config.MyConfig;
 import cn.sleepybear.fileconvert.convert.Constants;
-import cn.sleepybear.fileconvert.dto.DataDto;
+import cn.sleepybear.fileconvert.dto.TotalDataDto;
 import cn.sleepybear.fileconvert.dto.FileStreamDto;
 import cn.sleepybear.fileconvert.exception.FrontException;
 import cn.sleepybear.fileconvert.utils.CommonUtil;
@@ -28,7 +28,7 @@ public class ZipLogic {
     @Resource
     private ProcessDataLogic processDataLogic;
 
-    public List<DataDto> read(FileStreamDto fileStreamDto, Constants.FileTypeEnum fileTypeEnum, Long expireTime) {
+    public TotalDataDto read(FileStreamDto fileStreamDto, Constants.FileTypeEnum fileTypeEnum, Long expireTime) {
         List<String> files = new ArrayList<>();
         if (Constants.FileTypeEnum.ZIP_ZIP.equals(fileTypeEnum)) {
             files = CommonUtil.unzipZipFile(fileStreamDto, myConfig.getZipTmpDir());
@@ -37,11 +37,12 @@ public class ZipLogic {
             throw new FrontException("解压失败！不支持的编码格式，需要GBK或者UTF-8");
         }
 
-        List<DataDto> dataDtoList = new ArrayList<>();
         if (CollectionUtils.isEmpty(files)) {
-            return dataDtoList;
+            return null;
         }
 
+        TotalDataDto totalDataDto = new TotalDataDto();
+        totalDataDto.setFilename(fileStreamDto.getOriginalFilename());
         for (String file : files) {
             File tmpFile = new File(file);
             FileStreamDto tmpFileStreamDto = new FileStreamDto();
@@ -53,19 +54,14 @@ public class ZipLogic {
             tmpFileStreamDto.setFileType(suffix);
             tmpFileStreamDto.setId(CommonUtil.bytesToMd5(tmpFileStreamDto.getBytes()));
 
-            List<DataDto> list = processDataLogic.processData(tmpFileStreamDto, expireTime);
-            if (CollectionUtils.isNotEmpty(list)) {
-                for (DataDto dataDto : list) {
-                    dataDto.setExpireTime(expireTime);
-                    dataDtoList.add(dataDto);
-                }
-            }
+            TotalDataDto innerTotalDataDto = processDataLogic.processData(tmpFileStreamDto, expireTime);
+            totalDataDto.add(innerTotalDataDto);
 
             if (!tmpFile.delete()) {
                 log.warn("删除临时文件失败：{}", tmpFile.getAbsolutePath());
             }
         }
 
-        return dataDtoList;
+        return totalDataDto;
     }
 }

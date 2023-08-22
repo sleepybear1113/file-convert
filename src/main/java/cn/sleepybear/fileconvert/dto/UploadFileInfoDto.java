@@ -16,6 +16,7 @@ public class UploadFileInfoDto implements Serializable {
     private static final long serialVersionUID = -6892329300412325246L;
 
     private Integer id;
+    private String totalDataId;
     private String dataId;
     private String filename;
 }
