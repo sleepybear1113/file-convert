@@ -107,7 +107,6 @@
                 <span class="input-group-text" v-if="dataDto.filename">
                    {{dataDto.filename}}
                 </span>
-                <!--                <span class="input-group-text" v-show="!dataDto.fileDeleted"> [已删除]</span>-->
                 <button class="btn btn-outline-secondary" @click="deleteByDataId">从内存中删除</button>
             </span>
             </div>
@@ -145,7 +144,15 @@
                 </h2>
                 <div id="panelsStayOpen-collapseOne" class="accordion-collapse collapse show">
                     <div class="accordion-body" style="flex-wrap: wrap">
-                        <button class="btn btn-outline-secondary" v-for="info in uploadFileInfoDtoList" @click="changeFileData(info)">{{info.filename}}</button>
+                        <button v-if="!enableExportZip" class="btn btn-outline-secondary" v-for="info in uploadFileInfoDtoList" @click="changeFileData(info)">{{info.filename}}</button>
+                        <button v-if="enableExportZip" class="btn btn-outline-secondary" :class="info.checked? 'active': ''" data-bs-toggle="button" v-for="info in uploadFileInfoDtoList" @click="info.checked = !info.checked">{{info.filename}}</button>
+                    </div>
+                    <hr>
+                    <div style="flex-wrap: wrap">
+                        <label class="input-group-text">
+                            勾选导出压缩包
+                            <input class="form-check-input" type="checkbox" v-model="enableExportZip">
+                        </label>
                     </div>
                     <hr>
                 </div>
@@ -154,8 +161,8 @@
 
         <!-- 文件导出组件 -->
         <div v-if="dataDto && dataDto.dataList && dataDto.dataList.length > 0">
-            <button v-if="!exporting" class="btn btn-outline-secondary" v-show="!enableGroupByIndexes" v-for="(button, index) in exportButtonList" @click="preProcessExport(button.url)" :disabled="exporting">{{button.name}}</button>
-            <button v-if="!exporting" class="btn btn-outline-secondary" v-show="enableGroupByIndexes" v-for="(button, index) in exportZipButtonList" @click="preProcessExport(button.url)" :disabled="exporting">{{button.name}}</button>
+            <button v-if="!exporting" class="btn btn-outline-secondary" v-show="!enableGroupByIndexes && !enableExportZip" v-for="(button, index) in exportButtonList" @click="preProcessExport(button.url)" :disabled="exporting">{{button.name}}</button>
+            <button v-if="!exporting" class="btn btn-outline-secondary" v-show="enableGroupByIndexes || enableExportZip" v-for="(button, index) in exportZipButtonList" @click="preProcessExport(button.url)" :disabled="exporting">{{button.name}}</button>
             <button class="btn btn-secondary" type="button" disabled v-if="exporting">
                 <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                 <span>文件处理中...</span>

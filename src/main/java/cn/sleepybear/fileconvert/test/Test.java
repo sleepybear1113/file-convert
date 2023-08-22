@@ -23,7 +23,7 @@ public class Test {
 
     public static void testZip() throws FileNotFoundException {
         String path = "E:\\工作文档\\DBF\\555.zip";
-        CommonUtil.unzipZipFile(new FileInputStream(path), "tmp/");
+//        CommonUtil.unzipZipFile(new FileInputStream(path), "tmp/");
     }
 
     public static void testListFilter() {

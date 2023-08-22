@@ -1,5 +1,6 @@
 package cn.sleepybear.fileconvert.utils;
 
+import cn.sleepybear.fileconvert.dto.FileStreamDto;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -280,28 +281,34 @@ public class CommonUtil {
         }
     }
 
-    public static List<String> unzipZipFile(InputStream inputStream, String path) {
-        String[] encodings = new String[]{"GBK", "UTF-8"};
-        List<String> files = null;
-        for (String encoding : encodings) {
-            files = unzipZipFile(inputStream, encoding, path);
-            if (files != null) {
-                break;
-            }
-        }
-        return files;
+    public static List<String> unzipZipFile(FileStreamDto fileStreamDto, String path) {
+        return unzipZipFile(fileStreamDto.getByteArrayInputStream(), path);
     }
 
-    public static List<String> unzipZipFile(InputStream inputStream, String encoding, String path) {
+    public static List<String> unzipZipFile(InputStream inputStream, String path) {
         List<String> fileList = new ArrayList<>();
+        String[] encodings = new String[]{"UTF-8", "GBK"};
 
         try {
             byte[] buffer = new byte[1024];
-            ZipArchiveInputStream zipInputStream = new ZipArchiveInputStream(inputStream, encoding);
+            ZipArchiveInputStream zipInputStream = new ZipArchiveInputStream(inputStream, "UTF-8");
             ZipArchiveEntry zipEntry = zipInputStream.getNextZipEntry();
 
             while (zipEntry != null) {
-                String fileName = zipEntry.getName();
+                String fileName = null;
+                byte[] rawName = zipEntry.getRawName();
+                String encode = null;
+                for (String encodeS : encodings) {
+                    String s1 = new String(rawName, encodeS);
+                    if (filterWindowsLegalFileName(s1).equals(s1)) {
+                        fileName = s1;
+                        encode = encodeS;
+                    }
+                }
+                if (fileName == null) {
+                    continue;
+                }
+
                 String pathname = path + File.separator + fileName;
                 CommonUtil.ensureParentDir(pathname);
                 File newFile = new File(pathname);
@@ -317,12 +324,41 @@ public class CommonUtil {
 
             zipInputStream.close();
         } catch (IOException e) {
-            log.error("使用编码 {} 解压文件失败！", encoding, e);
+            log.error("使用编码 {} 解压文件失败！", "", e);
             return null;
         }
 
         return fileList;
     }
+
+//    public static List<FileStreamDto> unzipZipFile(InputStream inputStream, String encoding) {
+//        List<byte[]> fileList = new ArrayList<>();
+//
+//        try {
+//            byte[] buffer = new byte[1024];
+//            ZipArchiveInputStream zipInputStream = new ZipArchiveInputStream(inputStream, encoding);
+//            ZipArchiveEntry zipEntry = zipInputStream.getNextZipEntry();
+//
+//            while (zipEntry != null) {
+//                String fileName = zipEntry.getName();
+//                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//                int length;
+//                while ((length = zipInputStream.read(buffer)) > 0) {
+//                    baos.write(buffer, 0, length);
+//                }
+//                baos.close();
+//                zipEntry = zipInputStream.getNextZipEntry();
+//                fileList.add(baos.toByteArray());
+//            }
+//
+//            zipInputStream.close();
+//        } catch (IOException e) {
+//            log.error("使用编码 {} 解压文件失败！", encoding, e);
+//            return null;
+//        }
+//
+//        return fileList;
+//    }
 
     public static String getRandomStr(int length) {
         StringBuilder sb = new StringBuilder();

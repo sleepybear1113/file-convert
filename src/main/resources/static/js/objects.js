@@ -16,6 +16,7 @@ class UploadFileInfoDto {
         this.filename = props.filename;
         this.id = props.id;
         this.dataId = props.dataId;
+        this.checked = true;
     }
 }
 

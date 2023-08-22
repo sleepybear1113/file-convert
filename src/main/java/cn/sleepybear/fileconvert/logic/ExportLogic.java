@@ -45,7 +45,10 @@ public class ExportLogic {
      * @param chooseAll chooseAll
      * @return BatchDownloadInfoDto
      */
-    public BatchDownloadInfoDto preProcessExport(String dataId, List<Integer> colIndexes, List<Integer> groupByIndexes, Integer exportStart, Integer exportEnd, Boolean chooseAll) {
+    public BatchDownloadInfoDto preProcessExport(String dataId, List<String> dataIdList, List<Integer> colIndexes, List<Integer> groupByIndexes, Integer exportStart, Integer exportEnd, Boolean chooseAll) {
+        if (CollectionUtils.isEmpty(dataIdList)) {
+            throw new FrontException("未选择导出文件！");
+        }
         if (exportStart == null || exportStart <= 0) {
             exportStart = 1;
         }
@@ -65,8 +68,21 @@ public class ExportLogic {
             }
         }
 
-        DataDto dataDto = getExportedData(dataId, fixedColIndexes, exportStart, exportEnd, chooseAll);
-        List<DataDto> dataDtoList = dataDto.splitByColName(remainGroupByIndexes);
+        List<DataDto> dataDtoList = new ArrayList<>();
+        for (String dataId1 : dataIdList) {
+            DataDto dataDto = getExportedData(dataId1, fixedColIndexes, exportStart, exportEnd, chooseAll);
+            if (dataDto != null) {
+                dataDtoList.add(dataDto);
+            }
+        }
+        if (CollectionUtils.isEmpty(dataDtoList)) {
+            throw new FrontException("导出数据为空！");
+        }
+
+        DataDto dataDto = dataDtoList.get(0);
+        if (CollectionUtils.size(dataDtoList) == 1) {
+            dataDtoList = dataDto.splitByColName(remainGroupByIndexes);
+        }
         BatchDownloadInfoDto batchDownloadInfoDto = new BatchDownloadInfoDto();
         batchDownloadInfoDto.setDataId(dataDto.getId());
         batchDownloadInfoDto.setList(dataDtoList);

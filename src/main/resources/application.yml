@@ -10,9 +10,9 @@ spring:
     multipart:
       enabled: true
       # 单个文件的最大上限
-      max-file-size: 30MB
+      max-file-size: 50MB
       # 单个请求的文件总大小上限
-      max-request-size: 30MB
+      max-request-size: 50MB
 
 my-config:
   tmp-dir: tmp/

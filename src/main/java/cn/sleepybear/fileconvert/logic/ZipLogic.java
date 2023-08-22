@@ -31,7 +31,7 @@ public class ZipLogic {
     public List<DataDto> read(FileStreamDto fileStreamDto, Constants.FileTypeEnum fileTypeEnum, Long expireTime) {
         List<String> files = new ArrayList<>();
         if (Constants.FileTypeEnum.ZIP_ZIP.equals(fileTypeEnum)) {
-            files = CommonUtil.unzipZipFile(fileStreamDto.getByteArrayInputStream(), myConfig.getZipTmpDir());
+            files = CommonUtil.unzipZipFile(fileStreamDto, myConfig.getZipTmpDir());
         }
         if (files == null) {
             throw new FrontException("解压失败！不支持的编码格式，需要GBK或者UTF-8");

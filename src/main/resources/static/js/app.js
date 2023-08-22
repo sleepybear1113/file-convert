@@ -31,6 +31,7 @@ let app = new Vue({
         ],
         enableSelectedIndexes: false,
         enableGroupByIndexes: false,
+        enableExportZip: false,
         exportKey: "",
         confirmData: {
             title: "",
