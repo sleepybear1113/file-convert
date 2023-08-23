@@ -95,15 +95,18 @@ public class StringRecords {
     }
 
     private void buildHeadTypes() {
-        List<DataConstant.DataType> columnTypes = getColumnTypes(records);
+        List<DataConstant.DataType> columnTypes = getColumnTypes(records, dataCellHeads.size());
         for (int i = 0; i < dataCellHeads.size(); i++) {
             DataCellDto dataCellDto = dataCellHeads.get(i);
             dataCellDto.setDataType(columnTypes.get(i).getType());
         }
     }
 
-    private static List<DataConstant.DataType> getColumnTypes(List<List<String>> dataList) {
+    private static List<DataConstant.DataType> getColumnTypes(List<List<String>> dataList, Integer headCount) {
         int maxLength = dataList.stream().mapToInt(List::size).max().orElse(0);
+        if (headCount != null && headCount > maxLength) {
+            maxLength = headCount;
+        }
         List<DataConstant.DataType> columnTypes = new ArrayList<>();
         for (int i = 0; i < maxLength; i++) {
             final int index = i;
