@@ -64,7 +64,7 @@ public class DataDto implements Serializable {
         for (List<DataCellDto> data : dataList) {
             List<Object> rawData = new ArrayList<>();
             for (DataCellDto dataCellDto : data) {
-                rawData.add(dataCellDto.getValue());
+                rawData.add(dataCellDto == null ? null : dataCellDto.getValue());
             }
             rawDataList.add(rawData);
         }
