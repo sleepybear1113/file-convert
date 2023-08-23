@@ -10,8 +10,8 @@
 <link href="lib/bootstrap@5.3.1_dist_css_bootstrap.min.css" rel="stylesheet">
 <script src="lib/bootstrap@5.3.1_dist_js_bootstrap.bundle.min.js"></script>
 
-<script src="js/objects.js?v=1.0.5.7"></script>
-<script src="js/util.js?v=1.0.5.7"></script>
+<script src="js/objects.js?v=1.0.5.9"></script>
+<script src="js/util.js?v=1.0.5.9"></script>
 <style>
     .num-input {
         width: 90px;
@@ -128,7 +128,7 @@
                 <div class="input-group-text gap-1" style="flex-wrap: wrap" v-if="dataDto.heads">
                     <button class="btn btn-outline-secondary" :class="head.shown? 'active': ''"
                             data-bs-toggle="button" v-for="head in dataDto.heads" @click="head.shown = !head.shown">
-                        {{head.value}}
+                        {{head.value? head.value: "　"}}
                     </button>
                 </div>
             </div>
@@ -318,6 +318,6 @@
 
 </div>
 
-<script src="js/app.js?v=1.0.5.7"></script>
+<script src="js/app.js?v=1.0.5.9"></script>
 </body>
 </html>

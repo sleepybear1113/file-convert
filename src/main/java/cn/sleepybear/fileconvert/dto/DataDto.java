@@ -33,6 +33,10 @@ public class DataDto implements Serializable {
 
     private List<DataCellDto> heads;
     private List<DataCellDto> fixedHeads;
+
+    /**
+     * 每列去重后的数量
+     */
     private List<Integer> colCounts;
     private Boolean hasFixedHeader;
 
@@ -151,13 +155,19 @@ public class DataDto implements Serializable {
     public void buildColCounts() {
         List<Set<String>> colSets = new ArrayList<>();
         for (List<DataCellDto> dataCellDtos : dataList) {
-            for (int i = 0; i < dataCellDtos.size(); i++) {
+            // 按行遍历
+            for (int i = 0; i < heads.size(); i++) {
+                if (colSets.size() <= i) {
+                    // 如果列数不够，那么补充空白 set
+                    colSets.add(new HashSet<>());
+                }
+                if (dataCellDtos.size() <= i) {
+                    // head 有 但是下面为空，那么跳过
+                    continue;
+                }
                 DataCellDto dataCellDto = dataCellDtos.get(i);
                 if (dataCellDto == null) {
                     continue;
-                }
-                if (colSets.size() <= i) {
-                    colSets.add(new HashSet<>());
                 }
                 colSets.get(i).add(dataCellDto.getValue() == null ? null : dataCellDto.getValue().toString());
             }
@@ -199,7 +209,7 @@ public class DataDto implements Serializable {
         // 复制表头和数量
         for (Integer colIndex : colIndexes) {
             dataDto.getHeads().add(this.heads.get(colIndex));
-            dataDto.getColCounts().add(this.colCounts.get(colIndex));
+            dataDto.getColCounts().add(this.colCounts.size() <= colIndex ? 0 : this.colCounts.get(colIndex));
         }
 
         // 复制数据

@@ -33,7 +33,10 @@ public class StringRecords {
         if (CollectionUtils.isEmpty(dataList)) {
             return stringRecords;
         }
+
+        // 遍历每一行，获取最大长度的那行的长度
         int maxLength = dataList.stream().mapToInt(List::size).max().orElse(0);
+        // head 行如果不是最大长度，那么用 null 补
         if (dataList.get(0).size() < maxLength) {
             int addCount = maxLength - dataList.get(0).size();
             for (int i = 0; i < addCount; i++) {

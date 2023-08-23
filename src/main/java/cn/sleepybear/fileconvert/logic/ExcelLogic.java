@@ -83,6 +83,6 @@ public class ExcelLogic extends BaseExportLogic {
                 break;
             }
         }
-        EasyExcel.write(exportFilePath).head(dataDto.getHeadNames()).excelType(excelTypeEnum).sheet("sheet1").doWrite(dataDto.getRawDataList());
+        EasyExcel.write(exportFilePath).head(dataDto.getHeadNames()).automaticMergeHead(false).excelType(excelTypeEnum).sheet("sheet1").doWrite(dataDto.getRawDataList());
     }
 }

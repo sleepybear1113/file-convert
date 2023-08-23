@@ -171,7 +171,7 @@ let app = new Vue({
                 let data = res.data.result;
                 this.dataDto = new DataDto(data);
                 this.exportStart = (this.dataDto.pageInfo.page - 1) * this.dataDto.pageInfo.rowCount + 1;
-                this.exportEnd = this.exportStart + this.dataDto.pageInfo.rowCount;
+                this.exportEnd = this.exportStart + this.dataDto.pageInfo.rowCount - 1;
                 this.dataDto.recordNums = this.dataDto.pageInfo.totalCount;
                 this.dataLoading = false;
 
