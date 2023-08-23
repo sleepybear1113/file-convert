@@ -24,7 +24,15 @@ public class DataCellDto implements Serializable {
      */
     private Integer dataType;
 
+    /**
+     * 普通长度
+     */
     private Integer length;
+
+    /**
+     * 字节长度，可以用在 DBF 作为字段长度
+     */
+    private Integer lengthByte;
 
     private Boolean fixed;
 

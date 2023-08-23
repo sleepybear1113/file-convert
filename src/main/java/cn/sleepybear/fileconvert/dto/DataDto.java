@@ -132,6 +132,7 @@ public class DataDto implements Serializable {
             DataCellDto fixedHead = new DataCellDto();
             fixedHead.setDataType(head.getDataType());
             fixedHead.setLength(head.getLength());
+            fixedHead.setLengthByte(head.getLengthByte());
             fixedHead.setAcceptDataTypes(head.getAcceptDataTypes());
 
             if (fixedHeadNames.get(i) != null) {
@@ -205,7 +206,11 @@ public class DataDto implements Serializable {
         for (List<DataCellDto> dataCellDtos : this.dataList) {
             List<DataCellDto> row = new ArrayList<>();
             for (Integer colIndex : colIndexes) {
-                row.add(dataCellDtos.get(colIndex));
+                if (colIndex >= dataCellDtos.size()) {
+                    row.add(null);
+                } else {
+                    row.add(dataCellDtos.get(colIndex));
+                }
             }
             dataDto.getDataList().add(row);
         }

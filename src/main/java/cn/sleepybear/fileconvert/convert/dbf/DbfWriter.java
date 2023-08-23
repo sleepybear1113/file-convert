@@ -48,7 +48,11 @@ public class DbfWriter {
             field.setType(dbfDataType);
             String headValue = (String) head.getValue();
             field.setName(getSubStr(headValue, charset, 10));
-            field.setLength(head.getLength() == 0 ? 10 : head.getLength());
+            if (DBFDataType.DATE.equals(dbfDataType)) {
+                field.setLength(8);
+            } else {
+                field.setLength(head.getLengthByte() == 0 ? 10 : head.getLengthByte());
+            }
             dbfFieldList.add(field);
         }
 
@@ -60,7 +64,7 @@ public class DbfWriter {
             Object[] rowData = new Object[data.size()];
             for (int i = 0; i < data.size(); i++) {
                 DataCellDto dataCellDto = data.get(i);
-                rowData[i] = convert(dataCellDto.getValue(), DataConstant.DataType.getDataType(heads.get(i).getDataType()));
+                rowData[i] = dataCellDto == null ? null : convert(dataCellDto.getValue(), DataConstant.DataType.getDataType(heads.get(i).getDataType()));
             }
             writer.addRecord(rowData);
         }

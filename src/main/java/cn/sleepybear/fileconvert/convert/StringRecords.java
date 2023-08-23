@@ -1,11 +1,13 @@
 package cn.sleepybear.fileconvert.convert;
 
+import cn.sleepybear.fileconvert.convert.dbf.DbfConverter;
 import cn.sleepybear.fileconvert.dto.DataCellDto;
 import cn.sleepybear.fileconvert.dto.DataConstant;
 import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.UnsupportedEncodingException;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -60,6 +62,7 @@ public class StringRecords {
             DataCellDto dataCellDto = new DataCellDto();
             dataCellDto.setValue(head);
             dataCellDto.setLength(0);
+            dataCellDto.setLengthByte(0);
             dataCellHeads.add(dataCellDto);
         }
     }
@@ -78,6 +81,13 @@ public class StringRecords {
                 DataCellDto headDataCell = dataCellHeads.get(i);
                 if (data != null) {
                     headDataCell.setLength(Math.max(headDataCell.getLength(), data.length()));
+                    int lengthByte;
+                    try {
+                        lengthByte = data.getBytes(DbfConverter.DEFAULT_DBF_CHARSET).length;
+                    } catch (UnsupportedEncodingException e) {
+                        lengthByte = 0;
+                    }
+                    headDataCell.setLengthByte(Math.max(headDataCell.getLengthByte(), lengthByte));
                 }
             }
             dataCellRecords.add(dataCellRecord);
@@ -121,6 +131,11 @@ public class StringRecords {
         boolean isNumber = columnData.stream().allMatch(s -> {
             try {
                 if (StringUtils.isNotEmpty(s)) {
+                    if ("0".equals(s)) {
+                        return true;
+                    } else if (s.charAt(0) == '0') {
+                        return false;
+                    }
                     Long.parseLong(s);
                 }
                 return true;

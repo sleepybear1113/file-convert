@@ -296,30 +296,33 @@ public class CommonUtil {
 
             while (zipEntry != null) {
                 String fileName = null;
-                byte[] rawName = zipEntry.getRawName();
-                String encode = null;
-                for (String encodeS : encodings) {
-                    String s1 = new String(rawName, encodeS);
-                    if (filterWindowsLegalFileName(s1).equals(s1)) {
-                        fileName = s1;
-                        encode = encodeS;
+                try {
+                    byte[] rawName = zipEntry.getRawName();
+                    for (String encode : encodings) {
+                        String s1 = new String(rawName, encode);
+                        if (filterWindowsLegalFileName(s1).equals(s1)) {
+                            fileName = s1;
+                        }
                     }
-                }
-                if (fileName == null) {
-                    continue;
-                }
+                    if (fileName == null) {
+                        zipEntry = zipInputStream.getNextZipEntry();
+                        continue;
+                    }
 
-                String pathname = path + File.separator + fileName;
-                CommonUtil.ensureParentDir(pathname);
-                File newFile = new File(pathname);
-                FileOutputStream fos = new FileOutputStream(newFile);
-                int length;
-                while ((length = zipInputStream.read(buffer)) > 0) {
-                    fos.write(buffer, 0, length);
+                    String pathname = path + File.separator + fileName;
+                    CommonUtil.ensureParentDir(pathname);
+                    File newFile = new File(pathname);
+                    FileOutputStream fos = new FileOutputStream(newFile);
+                    int length;
+                    while ((length = zipInputStream.read(buffer)) > 0) {
+                        fos.write(buffer, 0, length);
+                    }
+                    fos.close();
+                    zipEntry = zipInputStream.getNextZipEntry();
+                    fileList.add(newFile.getAbsolutePath());
+                } catch (IOException e) {
+                    log.info("解压文件 {} 失败, {}", fileName, e.getMessage());
                 }
-                fos.close();
-                zipEntry = zipInputStream.getNextZipEntry();
-                fileList.add(newFile.getAbsolutePath());
             }
 
             zipInputStream.close();

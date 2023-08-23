@@ -3,10 +3,11 @@ package cn.sleepybear.fileconvert.logic;
 import cn.sleepybear.fileconvert.constants.GlobalVariable;
 import cn.sleepybear.fileconvert.convert.Constants;
 import cn.sleepybear.fileconvert.dto.DataDto;
-import cn.sleepybear.fileconvert.dto.TotalDataDto;
 import cn.sleepybear.fileconvert.dto.FileStreamDto;
+import cn.sleepybear.fileconvert.dto.TotalDataDto;
 import cn.sleepybear.fileconvert.exception.FrontException;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Component;
  * @date 2023/06/16 16:08
  */
 @Component
+@Slf4j
 public class ProcessDataLogic {
 
     @Resource
@@ -36,6 +38,7 @@ public class ProcessDataLogic {
         totalDataDto.setFilename(fileStreamDto.getOriginalFilename());
         totalDataDto.setId(fileStreamDto.getId());
 
+        long start = System.currentTimeMillis();
         if (Constants.FileTypeEnum.UNKNOWN.equals(fileTypeEnum)) {
             throw new FrontException("未知文件类型，无法进行读取转换！");
         } else if (Constants.FileTypeEnum.DBF.equals(fileTypeEnum)) {
@@ -45,9 +48,9 @@ public class ProcessDataLogic {
                    Constants.FileTypeEnum.CSV.equals(fileTypeEnum)) {
             totalDataDto = excelLogic.read(fileStreamDto, fileTypeEnum);
         } else if (Constants.FileTypeEnum.SQL_MYSQL.equals(fileTypeEnum)) {
-            // TODO
+            throw new FrontException("未知文件类型，无法进行读取转换！");
         } else if (Constants.FileTypeEnum.SQL_SQLITE.equals(fileTypeEnum)) {
-            // TODO
+            throw new FrontException("未知文件类型，无法进行读取转换！");
         } else if (Constants.FileTypeEnum.ZIP_ZIP.equals(fileTypeEnum)) {
             totalDataDto.add(zipLogic.read(fileStreamDto, fileTypeEnum, expireTime));
         } else {
@@ -57,8 +60,11 @@ public class ProcessDataLogic {
         if (CollectionUtils.isNotEmpty(totalDataDto.getList())) {
             for (DataDto dataDto : totalDataDto.getList()) {
                 dataDto.setExpireTime(expireTime);
+                dataDto.setTotalDataId(totalDataDto.getId());
             }
         }
+
+        log.info("id = {}，总处理耗时 = {}ms", fileStreamDto.getId(), System.currentTimeMillis() - start);
 
         GlobalVariable.DATA_TOTAL_CACHER.set(totalDataDto.getId(), totalDataDto, expireTime);
         return totalDataDto;

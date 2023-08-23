@@ -54,7 +54,12 @@ public class ZipLogic {
             tmpFileStreamDto.setFileType(suffix);
             tmpFileStreamDto.setId(CommonUtil.bytesToMd5(tmpFileStreamDto.getBytes()));
 
-            TotalDataDto innerTotalDataDto = processDataLogic.processData(tmpFileStreamDto, expireTime);
+            TotalDataDto innerTotalDataDto = null;
+            try {
+                innerTotalDataDto = processDataLogic.processData(tmpFileStreamDto, expireTime);
+            } catch (Exception e) {
+                log.error("处理文件 {} 失败：{}", tmpFileStreamDto.getOriginalFilename(), e.getMessage());
+            }
             totalDataDto.add(innerTotalDataDto);
 
             if (!tmpFile.delete()) {

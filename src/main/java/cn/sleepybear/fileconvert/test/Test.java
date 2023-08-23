@@ -5,6 +5,7 @@ import cn.sleepybear.fileconvert.utils.CommonUtil;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -17,12 +18,18 @@ import java.util.*;
  */
 public class Test {
     public static void main(String[] args) throws Exception {
-        testZip();
+        System.out.println(calculateBytes("嘉兴市第一中学123", "GBK"));
+        System.out.println(calculateBytes("嘉兴市第一中学123", "UTF-8"));
+        System.out.println(Long.parseLong("00123"));
     }
 
     public static void testZip() {
         String path = "E:\\工作文档\\DBF\\555.zip";
 //        CommonUtil.unzipZipFile(new FileInputStream(path), "tmp/");
+    }
+
+    public static int calculateBytes(String str, String charset) throws UnsupportedEncodingException {
+        return str.getBytes(charset).length;
     }
 
     public static void testListFilter() {
