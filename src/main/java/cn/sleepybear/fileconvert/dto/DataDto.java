@@ -57,7 +57,7 @@ public class DataDto implements Serializable {
     }
 
     public String getHeadNameStr(String split) {
-        return getHeadNames().stream().map(headName -> headName.get(0)).collect(Collectors.joining(split));
+        return getHeadNames().stream().map(List::getFirst).collect(Collectors.joining(split));
     }
 
     public List<List<Object>> getRawDataList() {

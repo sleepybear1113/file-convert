@@ -292,7 +292,7 @@ public class CommonUtil {
         try {
             byte[] buffer = new byte[1024];
             ZipArchiveInputStream zipInputStream = new ZipArchiveInputStream(inputStream, "UTF-8");
-            ZipArchiveEntry zipEntry = zipInputStream.getNextZipEntry();
+            ZipArchiveEntry zipEntry = zipInputStream.getNextEntry();
 
             while (zipEntry != null) {
                 String fileName = null;
@@ -305,7 +305,7 @@ public class CommonUtil {
                         }
                     }
                     if (fileName == null) {
-                        zipEntry = zipInputStream.getNextZipEntry();
+                        zipEntry = zipInputStream.getNextEntry();
                         continue;
                     }
 
@@ -318,7 +318,7 @@ public class CommonUtil {
                         fos.write(buffer, 0, length);
                     }
                     fos.close();
-                    zipEntry = zipInputStream.getNextZipEntry();
+                    zipEntry = zipInputStream.getNextEntry();
                     fileList.add(newFile.getAbsolutePath());
                 } catch (IOException e) {
                     log.info("解压文件 {} 失败, {}", fileName, e.getMessage());

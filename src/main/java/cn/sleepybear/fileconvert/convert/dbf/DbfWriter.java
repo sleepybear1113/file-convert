@@ -29,7 +29,7 @@ public class DbfWriter {
 
     public static void test(DataDto dataDto) {
         String path = "tmp\\dbf\\test.dbf";
-        new File(path).delete();
+        boolean b = new File(path).delete();
         write(path, Charset.forName(DbfConverter.DEFAULT_DBF_CHARSET), dataDto);
     }
 

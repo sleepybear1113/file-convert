@@ -1,6 +1,7 @@
 package cn.sleepybear.fileconvert.dto;
 
 import lombok.Data;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -20,6 +21,7 @@ public class FileStreamDto implements Serializable {
 
     private String id;
     private String tempFilename;
+    @Setter
     private String originalFilename;
     private String fileType;
     private byte[] bytes;
@@ -31,14 +33,10 @@ public class FileStreamDto implements Serializable {
     public FileStreamDto() {
     }
 
-    public void setOriginalFilename(String originalFilename) {
-        this.originalFilename = originalFilename;
-    }
-
-    public boolean setByteArrayInputStream(InputStream inputStream) {
+    public void setByteArrayInputStream(InputStream inputStream) {
         if (inputStream == null) {
             log.info("input stream is null!");
-            return false;
+            return;
         }
 
         ByteArrayOutputStream b = new ByteArrayOutputStream();
@@ -50,34 +48,28 @@ public class FileStreamDto implements Serializable {
             }
             b.flush();
             this.bytes = b.toByteArray();
-            return true;
         } catch (IOException e) {
             log.warn(e.getMessage(), e);
             this.errorMessage = e.getMessage();
-            return false;
         }
     }
 
-    public boolean setByteArrayInputStream(MultipartFile multipartFile) {
+    public void setByteArrayInputStream(MultipartFile multipartFile) {
         try {
             setByteArrayInputStream(multipartFile.getInputStream());
-            return true;
         } catch (IOException e) {
             log.warn(e.getMessage(), e);
             this.errorMessage = e.getMessage();
-            return false;
         }
     }
 
-    public boolean setByteArrayInputStream(File file) {
+    public void setByteArrayInputStream(File file) {
         try (FileInputStream fileInputStream = new FileInputStream(file)) {
             setByteArrayInputStream(fileInputStream);
             this.localFile = true;
-            return true;
         } catch (IOException e) {
             log.warn(e.getMessage(), e);
             this.errorMessage = e.getMessage();
-            return false;
         }
     }
 

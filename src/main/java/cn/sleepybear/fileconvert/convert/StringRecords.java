@@ -37,14 +37,14 @@ public class StringRecords {
         // 遍历每一行，获取最大长度的那行的长度
         int maxLength = dataList.stream().mapToInt(List::size).max().orElse(0);
         // head 行如果不是最大长度，那么用 null 补
-        if (dataList.get(0).size() < maxLength) {
-            int addCount = maxLength - dataList.get(0).size();
+        if (dataList.getFirst().size() < maxLength) {
+            int addCount = maxLength - dataList.getFirst().size();
             for (int i = 0; i < addCount; i++) {
-                dataList.get(0).add(null);
+                dataList.getFirst().add(null);
             }
         }
 
-        stringRecords.setHeads(dataList.get(0));
+        stringRecords.setHeads(dataList.getFirst());
         List<List<String>> data = new ArrayList<>();
         if (dataList.size() > 1) {
             data = new ArrayList<>(dataList.subList(1, dataList.size()));

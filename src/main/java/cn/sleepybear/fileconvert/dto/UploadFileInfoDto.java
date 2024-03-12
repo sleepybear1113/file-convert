@@ -7,6 +7,7 @@ import java.io.Serializable;
 
 /**
  * 上传文件的信息
+ *
  * @author sleepybear
  * @date 2023/08/22 00:10
  */

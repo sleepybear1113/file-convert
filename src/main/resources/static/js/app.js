@@ -67,26 +67,46 @@ let app = new Vue({
             this.enableGroupByIndexes = false;
             this.exportKey = "";
         },
+        createInputUpload(inputId) {
+            let parentDiv = document.getElementById("input-div");
+            while (parentDiv.firstChild) {
+                parentDiv.removeChild(parentDiv.firstChild);
+            }
+
+            let inputElement = document.createElement("input");
+            inputElement.setAttribute("type", "file");
+            inputElement.setAttribute("accept", this.acceptFileTypes);
+            inputElement.addEventListener('change', (event) => {
+                this.changeFile(event);
+            });
+            parentDiv.appendChild(inputElement);
+            inputElement.click();
+        },
         changeFile(event) {
-            let fileInput = event.target;
-            let selectedFiles = fileInput.files;
+            let selectedFiles;
+            if (event.type === 'drop') {
+                selectedFiles = event.dataTransfer.files;
+            } else if (event.type === 'change') {
+                selectedFiles = event.target.files;
+            }
+
             if (!selectedFiles || selectedFiles.length === 0) {
                 this.selectedFileName = "";
                 return;
             }
             let selectedFile = selectedFiles[0];
             this.selectedFileName = selectedFile.name;
+
+            this.uploadFile(selectedFile);
         },
-        upload() {
-            let url = "/upload/file";
-            let input = document.getElementById("uploadFileInput");
-            const file = input.files[0];
-            if (!file) {
-                showAlertWarning("请选择文件");
+        uploadFile(selectedFile) {
+            if (!selectedFile) {
+                showAlertWarning("请选择文件！");
                 return;
             }
+            let url = "/upload/file";
             const formData = new FormData();
-            formData.append("file", file);
+            formData.append("file", selectedFile);
             formData.append("deleteAfterUpload", this.deleteAfterUpload);
             formData.append("expireTimeMinutes", this.expireTimeMinutes);
 
@@ -108,7 +128,7 @@ let app = new Vue({
                 }
             }).catch(err => {
                 // 出现错误时的处理
-                showAlertWarning("上传失败，请选择其他文件");
+                showAlertWarning("上传失败，请选择其他文件！" + err.data.message);
                 this.fileUploading = false;
             });
         },
@@ -396,6 +416,25 @@ let app = new Vue({
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+        },
+        handleFileSelect(event) {
+            event.preventDefault();
+            this.changeFile(event);
+            this.resetStyle();
+        },
+        dragOverHandler(event) {
+            event.preventDefault();
+        },
+        dragEnterHandler(event) {
+            event.preventDefault();
+            document.getElementById('fileDropArea').classList.add('drag');
+        },
+        dragLeaveHandler(event) {
+            event.preventDefault();
+            this.resetStyle();
+        },
+        resetStyle() {
+            document.getElementById('fileDropArea').classList.remove('drag');
         },
     }
 });

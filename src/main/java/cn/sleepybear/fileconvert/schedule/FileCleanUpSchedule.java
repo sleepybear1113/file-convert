@@ -22,7 +22,9 @@ public class FileCleanUpSchedule {
     @Resource
     private MyConfig myConfig;
 
-    // 每 5 分钟执行一次
+    /**
+     * 每 5 分钟执行一次
+     */
     @Scheduled(cron = "0 0/5 * * * ?")
     public void cleanUp() {
         String exportTmpDir = myConfig.getExportTmpDir();

@@ -3,8 +3,8 @@ package cn.sleepybear.fileconvert.constants;
 import cn.sleepybear.cacher.Cacher;
 import cn.sleepybear.cacher.CacherBuilder;
 import cn.sleepybear.fileconvert.dto.BatchDownloadInfoDto;
-import cn.sleepybear.fileconvert.dto.TotalDataDto;
 import cn.sleepybear.fileconvert.dto.DownloadInfoDto;
+import cn.sleepybear.fileconvert.dto.TotalDataDto;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;

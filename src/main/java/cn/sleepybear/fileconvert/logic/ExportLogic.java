@@ -36,12 +36,13 @@ public class ExportLogic {
 
     /**
      * 预处理导出，将 dataDto 拆分为多个 dataDto，但不生成对应的文件。所有单个文件或者多个文件导出都必须要先预处理，然后将预处理信息放入缓存中 {@link GlobalVariable#BATCH_DOWNLOAD_INFO_CACHER}
-     * @param idList 格式为 {@link TotalDataDto#getId()}@{@link DataDto#getId()}，如 xxx@xxx,ccc@ccc,zzz@zzz
-     * @param colIndexes colIndexes
+     *
+     * @param idList         格式为 {@link TotalDataDto#getId()}@{@link DataDto#getId()}，如 xxx@xxx,ccc@ccc,zzz@zzz
+     * @param colIndexes     colIndexes
      * @param groupByIndexes groupByIndexes
-     * @param exportStart exportStart
-     * @param exportEnd exportEnd
-     * @param chooseAll chooseAll
+     * @param exportStart    exportStart
+     * @param exportEnd      exportEnd
+     * @param chooseAll      chooseAll
      * @return BatchDownloadInfoDto
      */
     public BatchDownloadInfoDto preProcessExport(List<String> idList, List<Integer> colIndexes, List<Integer> groupByIndexes, Integer exportStart, Integer exportEnd, Boolean chooseAll) {
@@ -83,7 +84,7 @@ public class ExportLogic {
         }
 
         BatchDownloadInfoDto batchDownloadInfoDto = new BatchDownloadInfoDto();
-        DataDto dataDto = dataDtoList.get(0);
+        DataDto dataDto = dataDtoList.getFirst();
         if (CollectionUtils.size(idList) == 1) {
             // 如果只有一组数据, 那么可以进行分组导出
             dataDtoList = dataDto.splitByColName(remainGroupByIndexes);
@@ -111,8 +112,9 @@ public class ExportLogic {
     /**
      * 从缓存 {@link GlobalVariable#BATCH_DOWNLOAD_INFO_CACHER} 中获取预处理的信息 {@link BatchDownloadInfoDto}，然后对每个 dataDto 进行导出形成对应的文件。<br/>
      * 最后若生成了若干个文件，则进行压缩。将最终的文件信息放入缓存 {@link GlobalVariable#DOWNLOAD_INFO_CACHER} 中
+     *
      * @param batchDownloadInfoId BatchDownloadInfoDto 的 batchDownloadInfoId
-     * @param excelTypeEnum excelTypeEnum
+     * @param excelTypeEnum       excelTypeEnum
      * @return {@link GlobalVariable#DOWNLOAD_INFO_CACHER} key
      */
     public String exportToExcel(String batchDownloadInfoId, ExcelTypeEnum excelTypeEnum) {
@@ -136,13 +138,13 @@ public class ExportLogic {
 
         // 如果只有一组数据, 则直接导出
         if (CollectionUtils.size(dataDtoList) == 1) {
-            DownloadInfoDto downloadInfoDto = baseExportLogic.exportDataDtoToFile(dataDtoList.get(0), myConfig.getExportTmpDir(), exportFileType);
+            DownloadInfoDto downloadInfoDto = baseExportLogic.exportDataDtoToFile(dataDtoList.getFirst(), myConfig.getExportTmpDir(), exportFileType);
             GlobalVariable.DOWNLOAD_INFO_CACHER.set(downloadInfoDto.getKey(), downloadInfoDto, 1000L * 3600);
             return downloadInfoDto.getKey();
         }
 
         // 如果有多组数据, 则压缩后导出
-        String midGroupByHeadNames = CollectionUtils.isEmpty(batchDownloadInfoDto.getGroupByIndexes()) ? "" : dataDtoList.get(0).copy(batchDownloadInfoDto.getGroupByIndexes()).getHeadNameStr("_");
+        String midGroupByHeadNames = CollectionUtils.isEmpty(batchDownloadInfoDto.getGroupByIndexes()) ? "" : dataDtoList.getFirst().copy(batchDownloadInfoDto.getGroupByIndexes()).getHeadNameStr("_");
         long start = System.currentTimeMillis();
         List<DownloadInfoDto> downloadInfoDtoList = new ArrayList<>();
         for (DataDto dto : dataDtoList) {
@@ -200,7 +202,6 @@ public class ExportLogic {
             filePathList.add(downloadInfoDto.getFullFilePath());
             totalFileSize += downloadInfoDto.getSize();
         }
-
 
         String zipFilePath = "分组导出_%s_%s_%s.zip".formatted(midGroupByHeadNames, filename, CommonUtil.getTime());
         String exportFilePath = myConfig.getExportTmpDir() + zipFilePath;

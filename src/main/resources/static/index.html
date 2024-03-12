@@ -10,8 +10,8 @@
 <link href="lib/bootstrap@5.3.1_dist_css_bootstrap.min.css" rel="stylesheet">
 <script src="lib/bootstrap@5.3.1_dist_js_bootstrap.bundle.min.js"></script>
 
-<script src="js/objects.js?v=1.0.5.9"></script>
-<script src="js/util.js?v=1.0.5.9"></script>
+<script src="js/objects.js?v=1.0.5.10"></script>
+<script src="js/util.js?v=1.0.5.10"></script>
 <style>
     .num-input {
         width: 90px;
@@ -20,6 +20,12 @@
     thead {
         font-weight: bold;
         background-color: #f2f2f2;
+    }
+
+    .drag {
+        border-color: #1e90ff;
+        background-color: #f0f8ff;
+        color: #1e90ff;
     }
 </style>
 <body>
@@ -30,6 +36,9 @@
         <div>
             <!-- 提示框 -->
             <div id="alert-div"></div>
+
+            <!-- 文件上传 -->
+            <div id="input-div" style="display: none"></div>
 
             <!-- 确认对话框的模态框组件 -->
             <div class="modal fade" id="confirmModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
@@ -63,16 +72,14 @@
         <div class="row g-5">
             <div class="col-md-5 d-flex">
                 <label class="input-group-text input-group-sm mb-3">
-                    <button class="btn btn-outline-secondary" v-if="!fileUploading" v-on:click="upload()">上传</button>
+                    <span id="fileDropArea" class="text-truncate" style="max-width: 300px; min-width: 100px" @drop="handleFileSelect" @dragover="dragOverHandler" @dragenter="dragEnterHandler" @dragleave="dragLeaveHandler">
+                        {{!selectedFileName? "请拖动/选择[Excel/CSV/DBF]文件": selectedFileName}}
+                    </span>
+                    <button class="btn btn-outline-secondary" v-if="!fileUploading" @click="createInputUpload(1)">浏览</button>
                     <button class="btn btn-secondary" type="button" disabled v-if="fileUploading">
                         <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                         <span class="visually-hidden">上传中...</span>
                     </button>
-                </label>
-                <label class="input-group-text input-group-sm mb-3" for="uploadFileInput">
-                    <input id="uploadFileInput" type="file" class="form-control" :accept="acceptFileTypes" style="display: none" @change="changeFile">
-                    <span class="text-truncate" style="max-width: 300px">{{!selectedFileName? "请选择Excel/CSV/DBF文件": selectedFileName}}</span>
-                    <button class="btn btn-outline-secondary" onclick="document.getElementById('uploadFileInput').click()">浏览</button>
                 </label>
             </div>
             <div class="col-md-4 d-flex">
@@ -318,6 +325,6 @@
 
 </div>
 
-<script src="js/app.js?v=1.0.5.9"></script>
+<script src="js/app.js?v=1.0.5.10"></script>
 </body>
 </html>

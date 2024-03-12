@@ -6,8 +6,8 @@ import cn.sleepybear.fileconvert.convert.dbf.DbfRecord;
 import cn.sleepybear.fileconvert.convert.dbf.DbfWriter;
 import cn.sleepybear.fileconvert.dto.DataCellDto;
 import cn.sleepybear.fileconvert.dto.DataDto;
-import cn.sleepybear.fileconvert.dto.TotalDataDto;
 import cn.sleepybear.fileconvert.dto.FileStreamDto;
+import cn.sleepybear.fileconvert.dto.TotalDataDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -43,8 +43,8 @@ public class DbfLogic extends BaseExportLogic {
 
         List<DataCellDto> headList = dbfRecord.buildHead();
         dataDto.setHeads(headList);
-        dataDto.buildFixedHeads();
         dataDto.buildColCounts();
+        dataDto.buildFixedHeads();
 
         TotalDataDto totalDataDto = new TotalDataDto();
         totalDataDto.setId(fileStreamDto.getId());
