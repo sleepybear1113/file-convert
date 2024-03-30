@@ -33,7 +33,7 @@ public class DataDto implements Serializable {
 
     private List<DataCellDto> heads;
     private List<DataCellDto> fixedHeads;
-    private Boolean hasFixedHeader;
+    private Boolean hasFixedHead;
 
     /**
      * 每列去重后的数量
@@ -89,7 +89,7 @@ public class DataDto implements Serializable {
     }
 
     public void buildFixedHeads() {
-        hasFixedHeader = false;
+        hasFixedHead = false;
         if (CollectionUtils.isEmpty(heads)) {
             return;
         }
@@ -141,7 +141,7 @@ public class DataDto implements Serializable {
             fixedHead.setValue(fixedHeadNames.get(i));
             if (!fixedHeadNames.get(i).equals(head.getValue())) {
                 fixedHead.setFixed(true);
-                hasFixedHeader = true;
+                hasFixedHead = true;
             } else {
                 fixedHead.setFixed(false);
             }

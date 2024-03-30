@@ -10,8 +10,8 @@
 <link href="lib/bootstrap@5.3.1_dist_css_bootstrap.min.css" rel="stylesheet">
 <script src="lib/bootstrap@5.3.1_dist_js_bootstrap.bundle.min.js"></script>
 
-<script src="js/objects.js?v=1.0.5.11"></script>
-<script src="js/util.js?v=1.0.5.11"></script>
+<script src="js/objects.js?v=1.0.6.0"></script>
+<script src="js/util.js?v=1.0.6.0"></script>
 <style>
     body {
         height: 98vh;
@@ -96,7 +96,7 @@
             <nav class="navbar" style="background-color: #e3f2fd;">
                 <div class="container-fluid">
                     <a class="navbar-brand" href="#">文件转换</a>
-                    <span>{{version ? version : ""}}</span>
+                    <span>{{basicInfo.version ? basicInfo.version : ""}}</span>
                 </div>
             </nav>
         </div>
@@ -114,13 +114,15 @@
                         </button>
                         <button class="btn btn-secondary" type="button" disabled v-if="fileUploading">
                             <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                            <span class="visually-hidden">上传中...</span>
+                            <span>{{fileUploadPercent >= 100? "解析中..." :`上传中...(${fileUploadPercent}%)`}}</span>
                         </button>
                     </label>
                 </div>
                 <div class="col-md-4 d-flex">
                     <label class="input-group-text input-group-sm mb-3" for="dataId">
-                        文件编号：<input class="form-control" id="dataId" v-model="inputFullId">
+                        文件编号：
+                        <input class="form-control" id="dataId" v-model="inputFullId"
+                               @keyup.enter="getDataList(1, true)">
                         <button class="btn btn-outline-secondary" @click="getDataList(1, true)" :disabled="dataLoading">
                             获取数据
                         </button>
@@ -148,13 +150,13 @@
             <!-- 文件信息组件 -->
             <div class="row" v-if="dataDto && dataDto.dataList && dataDto.dataList.length">
                 <div class="col-md-12 d-flex">
-            <span class="input-group-text">
-                文件名：
-                <span class="input-group-text" v-if="dataDto.filename">
-                   {{dataDto.filename}}
-                </span>
-                <button class="btn btn-outline-secondary" @click="deleteByDataId">从内存中删除</button>
-            </span>
+                    <span class="input-group-text">
+                        文件名：
+                        <span class="input-group-text" v-if="dataDto.filename">
+                            {{dataDto.filename}}
+                        </span>
+                        <button class="btn btn-outline-secondary" @click="deleteByDataId">从内存中删除</button>
+                    </span>
                 </div>
 
                 <div class="col-md-12 d-flex">
@@ -194,13 +196,13 @@
                     <div id="panelsStayOpen-collapseOne" class="accordion-collapse collapse show">
                         <div class="accordion-body" style="flex-wrap: wrap">
                             <button v-if="!enableExportZip" class="btn btn-outline-secondary"
-                                    v-for="info in totalUploadFileInfoDto.uploadFileInfoDtoList"
+                                    :class="info.dataChecked? 'active': ''" v-for="info in totalUploadFileInfoDto.uploadFileInfoDtoList"
                                     @click="changeFileData(info)">{{info.filename}}
                             </button>
                             <button v-if="enableExportZip" class="btn btn-outline-secondary"
-                                    :class="info.checked? 'active': ''" data-bs-toggle="button"
+                                    :class="info.zipChecked? 'active': ''" data-bs-toggle="button"
                                     v-for="info in totalUploadFileInfoDto.uploadFileInfoDtoList"
-                                    @click="info.checked = !info.checked">{{info.filename}}
+                                    @click="info.zipChecked = !info.checked">{{info.filename}}
                             </button>
                         </div>
                         <hr>
@@ -281,114 +283,101 @@
                 <hr>
             </div>
 
-            <!-- 分页组件 -->
-            <div class="d-flex" v-if="dataDto && dataDto.dataList && dataDto.dataList.length">
-                <label class="input-group-text">
-                    每页数据行数<input type="number" v-model="rowCount" class="form-control num-input">
-                </label>
-                <button class="btn btn-outline-secondary" @click="changePage(0)" :disabled="dataLoading">首页</button>
-                <button class="btn btn-outline-secondary" @click="changePage(-1)" :disabled="dataLoading">上一页
-                </button>
-                <label class="input-group-text" style="display: flex;">
-                    页码
-                    <input class="form-control num-input" type="number" v-model="page">
-                </label>
-                <span class="input-group-text"
-                      v-if="dataDto && dataDto.pageInfo && dataDto.pageInfo.totalPage">总共{{dataDto.pageInfo.totalPage}}页</span>
-                <button class="btn btn-outline-secondary" @click="changePage(1)" :disabled="dataLoading">下一页</button>
-                <button class="btn btn-outline-secondary" @click="getDataList(page)" :disabled="dataLoading">获取数据
-                </button>
-            </div>
+            <!-- 分页组件、表格组件 -->
+            <div v-for="ii in [0, 1]">
+                <!-- 分页组件 -->
+                <div class="d-flex" v-if="dataDto && dataDto.dataList && dataDto.dataList.length">
+                    <label class="input-group-text">
+                        每页数据行数<input type="number" v-model="rowCount" class="form-control num-input">
+                    </label>
+                    <button class="btn btn-outline-secondary" @click="changePage(0)" :disabled="dataLoading">首页
+                    </button>
+                    <button class="btn btn-outline-secondary" @click="changePage(-1)" :disabled="dataLoading">上一页
+                    </button>
+                    <label class="input-group-text" style="display: flex;">
+                        页码
+                        <input class="form-control num-input" type="number" v-model="page"
+                               @keyup.enter="getDataList(page)">
+                    </label>
+                    <span class="input-group-text"
+                          v-if="dataDto && dataDto.pageInfo && dataDto.pageInfo.totalPage">总共{{dataDto.pageInfo.totalPage}}页</span>
+                    <button class="btn btn-outline-secondary" @click="changePage(1)" :disabled="dataLoading">下一页
+                    </button>
+                    <button class="btn btn-outline-secondary" @click="getDataList(page)" :disabled="dataLoading">获取数据
+                    </button>
+                </div>
 
-            <!-- 表格 -->
-            <div id="table-data" class="table-responsive"
-                 v-if="dataDto && dataDto.dataList && dataDto.dataList.length">
-                <table class="table table-striped table-hover table-bordered table-sm">
-                    <thead class="table-light">
-                    <!--选择表头 checkBox-->
-                    <tr v-show="enableGroupByIndexes">
-                        <td class="text-nowrap">文件分组</td>
-                        <template v-for="(head, index) in dataDto.heads">
-                            <td v-if="head.shown">
-                                <label><input type="checkbox" class="form-check-input"
-                                              v-model="head.groupByChecked"></label>
-                            </td>
-                        </template>
-                    </tr>
-
-                    <!--序号-->
-                    <tr>
-                        <td class="text-nowrap text-center">序号</td>
-                        <template v-for="(count, index) in dataDto.colCounts">
-                            <td class="text-nowrap text-center" v-if="dataDto.heads[index].shown">
-                                <span>{{index + 1}}</span>
-                            </td>
-                        </template>
-                    </tr>
-
-                    <!--处理表头字段-->
-                    <tr>
-                        <td class="text-nowrap text-center">去重数量</td>
-                        <template v-for="(count, index) in dataDto.colCounts">
-                            <td class="text-nowrap text-center" v-if="dataDto.heads[index].shown">
-                                <span>{{count + 1}}</span>
-                            </td>
-                        </template>
-                    </tr>
-
-                    <!--原始表头字段-->
-                    <tr>
-                        <td class="text-nowrap text-center">原始表头</td>
-                        <template v-for="(head, index) in dataDto.heads">
-                            <td class="text-nowrap text-center" v-if="dataDto.heads[index].shown">
-                                <span class="text-center">{{head.value}}</span>
-                            </td>
-                        </template>
-                    </tr>
-
-                    <!--处理表头字段-->
-                    <tr v-show="dataDto.hasFixedHead">
-                        <td class="text-nowrap text-center">处理表头</td>
-                        <template v-for="(head, index) in dataDto.fixedHeads">
-                            <td class="text-nowrap text-center" v-if="dataDto.heads[index].shown">
-                                <span>{{head.value}}</span>
-                            </td>
-                        </template>
-                    </tr>
-                    </thead>
-
-                    <tbody class="table-group-divider">
-                    <template v-for="(row, index) in dataDto.dataList">
-                        <tr>
-                            <td class="text-center">
-                                <span>{{(dataDto.pageInfo.page - 1) * dataDto.pageInfo.rowCount + index + 1}}</span>
-                            </td>
-                            <template v-for="(col, index) in row">
-                                <td v-if="dataDto.heads[index].shown">{{col.value}}</td>
+                <!-- 表格 -->
+                <div id="table-data" class="table-responsive"
+                     v-if="dataDto && dataDto.dataList && dataDto.dataList.length && ii === 0">
+                    <table class="table table-striped table-hover table-bordered table-sm">
+                        <thead class="table-light">
+                        <!--选择表头 checkBox-->
+                        <tr v-show="enableGroupByIndexes">
+                            <td class="text-nowrap">文件分组</td>
+                            <template v-for="(head, index) in dataDto.heads">
+                                <td v-if="head.shown">
+                                    <label><input type="checkbox" class="form-check-input"
+                                                  v-model="head.groupByChecked"></label>
+                                </td>
                             </template>
                         </tr>
-                    </template>
-                    </tbody>
-                </table>
-            </div>
 
-            <!-- 分页组件 -->
-            <div class="d-flex" v-if="dataDto && dataDto.dataList && dataDto.dataList.length">
-                <label class="input-group-text">
-                    每页数据行数<input type="number" v-model="rowCount" class="form-control num-input">
-                </label>
-                <button class="btn btn-outline-secondary" @click="changePage(0)" :disabled="dataLoading">首页</button>
-                <button class="btn btn-outline-secondary" @click="changePage(-1)" :disabled="dataLoading">上一页
-                </button>
-                <label class="input-group-text" style="display: flex;">
-                    页码
-                    <input class="form-control num-input" type="number" v-model="page">
-                </label>
-                <span class="input-group-text"
-                      v-if="dataDto && dataDto.pageInfo && dataDto.pageInfo.totalPage">总共{{dataDto.pageInfo.totalPage}}页</span>
-                <button class="btn btn-outline-secondary" @click="changePage(1)" :disabled="dataLoading">下一页</button>
-                <button class="btn btn-outline-secondary" @click="getDataList(page)" :disabled="dataLoading">获取数据
-                </button>
+                        <!--序号-->
+                        <tr>
+                            <td class="text-nowrap text-center">序号</td>
+                            <template v-for="(count, index) in dataDto.colCounts">
+                                <td class="text-nowrap text-center" v-if="dataDto.heads[index].shown">
+                                    <span>{{index + 1}}</span>
+                                </td>
+                            </template>
+                        </tr>
+
+                        <!--处理表头字段-->
+                        <tr>
+                            <td class="text-nowrap text-center">去重数量</td>
+                            <template v-for="(count, index) in dataDto.colCounts">
+                                <td class="text-nowrap text-center" v-if="dataDto.heads[index].shown">
+                                    <span>{{count + 1}}</span>
+                                </td>
+                            </template>
+                        </tr>
+
+                        <!--原始表头字段-->
+                        <tr>
+                            <td class="text-nowrap text-center">原始表头</td>
+                            <template v-for="(head, index) in dataDto.heads">
+                                <td class="text-nowrap text-center" v-if="dataDto.heads[index].shown">
+                                    <span class="text-center">{{head.value}}</span>
+                                </td>
+                            </template>
+                        </tr>
+
+                        <!--处理表头字段-->
+                        <tr v-show="dataDto.hasFixedHead">
+                            <td class="text-nowrap text-center">处理表头</td>
+                            <template v-for="(head, index) in dataDto.fixedHeads">
+                                <td class="text-nowrap text-center" v-if="dataDto.heads[index].shown">
+                                    <span>{{head.value}}</span>
+                                </td>
+                            </template>
+                        </tr>
+                        </thead>
+
+                        <tbody class="table-group-divider">
+                        <template v-for="(row, index) in dataDto.dataList">
+                            <tr>
+                                <td class="text-center">
+                                    <span>{{(dataDto.pageInfo.page - 1) * dataDto.pageInfo.rowCount + index + 1}}</span>
+                                </td>
+                                <template v-for="(col, index) in row">
+                                    <td v-if="dataDto.heads[index].shown" class="text-center">{{col.value}}</td>
+                                </template>
+                            </tr>
+                        </template>
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <!-- 中间 confirm 组件 -->
@@ -416,6 +405,6 @@
     </div>
 </div>
 
-<script src="js/app.js?v=1.0.5.11"></script>
+<script src="js/app.js?v=1.0.6.0"></script>
 </body>
 </html>

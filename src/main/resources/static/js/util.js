@@ -7,6 +7,21 @@ function parseTimeToStr(t) {
     return `${date.getFullYear()}-${time2(date.getMonth() + 1)}-${time2(date.getDate())} ${time2(date.getHours())}:${time2(date.getMinutes())}:${time2(date.getSeconds())}`;
 }
 
+function parseFileSize(size) {
+    if (size == null || isNaN(size) || size.length === 0) {
+        return "";
+    }
+
+    let unit = ["B", "KB", "MB", "GB", "TB"];
+    let i = 0;
+    while (size >= 1024 && i < unit.length) {
+        size /= 1024;
+        i++;
+    }
+
+    return size.toFixed(2) + unit[i];
+}
+
 function time2(t) {
     if (t < 10) {
         return "0" + t;

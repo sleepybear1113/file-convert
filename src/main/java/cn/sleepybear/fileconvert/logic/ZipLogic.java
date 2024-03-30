@@ -2,6 +2,7 @@ package cn.sleepybear.fileconvert.logic;
 
 import cn.sleepybear.fileconvert.config.MyConfig;
 import cn.sleepybear.fileconvert.convert.Constants;
+import cn.sleepybear.fileconvert.dto.FileBytesInfoDto;
 import cn.sleepybear.fileconvert.dto.FileStreamDto;
 import cn.sleepybear.fileconvert.dto.TotalDataDto;
 import cn.sleepybear.fileconvert.exception.FrontException;
@@ -11,7 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,7 +30,7 @@ public class ZipLogic {
     private ProcessDataLogic processDataLogic;
 
     public TotalDataDto read(FileStreamDto fileStreamDto, Constants.FileTypeEnum fileTypeEnum, Long expireTime) {
-        List<String> files = new ArrayList<>();
+        List<FileBytesInfoDto> files = new ArrayList<>();
         if (Constants.FileTypeEnum.ZIP_ZIP.equals(fileTypeEnum)) {
             files = CommonUtil.unzipZipFile(fileStreamDto, myConfig.getZipTmpDir());
         }
@@ -44,14 +44,15 @@ public class ZipLogic {
 
         TotalDataDto totalDataDto = new TotalDataDto();
         totalDataDto.setFilename(fileStreamDto.getOriginalFilename());
-        for (String file : files) {
-            File tmpFile = new File(file);
+        for (FileBytesInfoDto fileBytesInfoDto : files) {
+            String filename = fileBytesInfoDto.getFilename();
+
             FileStreamDto tmpFileStreamDto = new FileStreamDto();
-            tmpFileStreamDto.setOriginalFilename(tmpFile.getName());
-            String suffix = tmpFile.getName().substring(tmpFile.getName().lastIndexOf("."));
-            tmpFileStreamDto.setTempFilename(UploadLogic.generateTempFilename(tmpFile.getName(), suffix));
+            tmpFileStreamDto.setOriginalFilename(filename);
+            String suffix = filename.substring(filename.lastIndexOf("."));
+            tmpFileStreamDto.setTempFilename(UploadLogic.generateTempFilename(filename, suffix));
             tmpFileStreamDto.setCreateTime(System.currentTimeMillis());
-            tmpFileStreamDto.setByteArrayInputStream(tmpFile);
+            tmpFileStreamDto.setBytes(fileBytesInfoDto.getBytes());
             tmpFileStreamDto.setFileType(suffix);
             tmpFileStreamDto.setId(CommonUtil.bytesToMd5(tmpFileStreamDto.getBytes()));
 
@@ -62,10 +63,6 @@ public class ZipLogic {
                 log.error("处理文件 {} 失败：{}", tmpFileStreamDto.getOriginalFilename(), e.getMessage());
             }
             totalDataDto.add(innerTotalDataDto);
-
-            if (!tmpFile.delete()) {
-                log.warn("删除临时文件失败：{}", tmpFile.getAbsolutePath());
-            }
         }
 
         return totalDataDto;

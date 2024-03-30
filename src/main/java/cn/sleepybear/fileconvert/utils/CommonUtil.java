@@ -1,5 +1,6 @@
 package cn.sleepybear.fileconvert.utils;
 
+import cn.sleepybear.fileconvert.dto.FileBytesInfoDto;
 import cn.sleepybear.fileconvert.dto.FileStreamDto;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -246,41 +247,6 @@ public class CommonUtil {
         return pattern.matcher(fileName).replaceAll("_");
     }
 
-    public static void compressToZip(List<String> filePaths, String zipFilePath, Boolean deleteOriginalFiles) {
-        try (ZipArchiveOutputStream zipOut = new ZipArchiveOutputStream(new FileOutputStream(zipFilePath))) {
-            for (String filePath : filePaths) {
-                File file = new File(filePath);
-                if (file.exists()) {
-                    try (FileInputStream fileIn = new FileInputStream(file)) {
-                        ZipArchiveEntry zipEntry = new ZipArchiveEntry(file.getName());
-                        zipOut.putArchiveEntry(zipEntry);
-
-                        byte[] buffer = new byte[10240];
-                        int length;
-                        while ((length = fileIn.read(buffer)) > 0) {
-                            zipOut.write(buffer, 0, length);
-                        }
-
-                        zipOut.closeArchiveEntry();
-                    }
-                }
-            }
-            if (Boolean.TRUE.equals(deleteOriginalFiles)) {
-                for (String filePath : filePaths) {
-                    File file = new File(filePath);
-                    if (file.exists()) {
-                        boolean delete = file.delete();
-                        if (!delete) {
-                            log.info("删除文件 {} 失败", file);
-                        }
-                    }
-                }
-            }
-        } catch (IOException e) {
-            log.info("压缩文件失败", e);
-        }
-    }
-
     public static ByteArrayOutputStream compressBytesToZip(List<byte[]> byteFiles, List<String> filenameList) {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         try (ZipArchiveOutputStream zipOut = new ZipArchiveOutputStream(byteArrayOutputStream)) {
@@ -310,13 +276,12 @@ public class CommonUtil {
         }
     }
 
-    public static List<String> unzipZipFile(FileStreamDto fileStreamDto, String path) {
+    public static List<FileBytesInfoDto> unzipZipFile(FileStreamDto fileStreamDto, String path) {
         return unzipZipFile(fileStreamDto.getByteArrayInputStream(), path);
     }
 
-    public static List<String> unzipZipFile(InputStream inputStream, String path) {
-        List<String> fileList = new ArrayList<>();
-        String[] encodings = new String[]{"UTF-8", "GBK"};
+    public static List<FileBytesInfoDto> unzipZipFile(InputStream inputStream, String path) {
+        List<FileBytesInfoDto> fileBytesInfoDtos = new ArrayList<>();
 
         try {
             byte[] buffer = new byte[1024];
@@ -326,29 +291,16 @@ public class CommonUtil {
             while (zipEntry != null) {
                 String fileName = null;
                 try {
-                    byte[] rawName = zipEntry.getRawName();
-                    for (String encode : encodings) {
-                        String s1 = new String(rawName, encode);
-                        if (filterWindowsLegalFileName(s1).equals(s1)) {
-                            fileName = s1;
-                        }
-                    }
-                    if (fileName == null) {
-                        zipEntry = zipInputStream.getNextEntry();
-                        continue;
-                    }
-
-                    String pathname = path + File.separator + fileName;
-                    CommonUtil.ensureParentDir(pathname);
-                    File newFile = new File(pathname);
-                    FileOutputStream fos = new FileOutputStream(newFile);
+                    fileName = filterWindowsLegalFileName(zipEntry.getName());
+                    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
                     int length;
                     while ((length = zipInputStream.read(buffer)) > 0) {
-                        fos.write(buffer, 0, length);
+                        byteArrayOutputStream.write(buffer, 0, length);
                     }
-                    fos.close();
+
+                    FileBytesInfoDto fileBytesInfoDto = new FileBytesInfoDto(fileName, byteArrayOutputStream.toByteArray());
+                    fileBytesInfoDtos.add(fileBytesInfoDto);
                     zipEntry = zipInputStream.getNextEntry();
-                    fileList.add(newFile.getAbsolutePath());
                 } catch (IOException e) {
                     log.info("解压文件 {} 失败, {}", fileName, e.getMessage());
                 }
@@ -360,7 +312,7 @@ public class CommonUtil {
             return null;
         }
 
-        return fileList;
+        return fileBytesInfoDtos;
     }
 
     public static String getRandomStr(int length) {

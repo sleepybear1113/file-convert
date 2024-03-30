@@ -18,4 +18,8 @@ public class MyConfig {
     private String zipTmpDir;
     @Value("${my-config.version}")
     private String version;
+    @Value("${my-config.max-file-size}")
+    private String maxFileSize;
+    @Value("${my-config.max-request-size}")
+    private String maxRequestSize;
 }

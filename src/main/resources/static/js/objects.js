@@ -1,3 +1,10 @@
+class BasicInfoDto {
+    constructor(props = {}) {
+        this.version = props.version;
+        this.acceptMaxFileSize = props.acceptMaxFileSize;
+    }
+}
+
 class DataSimpleInfoDto {
     constructor(props = {}) {
         this.id = props.id;
@@ -17,7 +24,8 @@ class UploadFileInfoDto {
         this.id = props.id;
         this.dataId = props.dataId;
         this.totalDataId = props.totalDataId;
-        this.checked = true;
+        this.dataChecked = true;
+        this.zipChecked = true;
     }
 
     getFullId() {

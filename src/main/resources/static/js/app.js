@@ -4,7 +4,7 @@ let app = new Vue({
         showUploadMask: false,
         lastDragEnter: null,
 
-        version: "",
+        basicInfo: {},
         inputFullId: "",
         downloadPrefix: axios.defaults.baseURL + "/download/downloadFile?exportKey=",
         acceptFileTypes: ".xls,.xlsx,.dbf,.csv,.sql,.db,.sqlite,.zip",
@@ -20,6 +20,7 @@ let app = new Vue({
         deleteAfterUpload: true,
         expireTimeMinutes: 60,
         fileUploading: false,
+        fileUploadPercent: 0,
         dataLoading: false,
         exporting: false,
         toastMsg: "",
@@ -57,9 +58,9 @@ let app = new Vue({
     },
     methods: {
         getVersion() {
-            let url = "system/getVersion";
+            let url = "system/getBasicInfoDto";
             axios.get(url).then(res => {
-                this.version = res.data.result;
+                this.basicInfo = new BasicInfoDto(res.data.result);
             }).catch(() => {
             });
         },
@@ -106,15 +107,28 @@ let app = new Vue({
                 return;
             }
             let selectedFile = selectedFiles[0];
-            this.selectedFileName = selectedFile.name;
+            let b = this.uploadFile(selectedFile);
+            if (b) {
+                this.selectedFileName = selectedFile.name;
+            }
 
-            this.uploadFile(selectedFile);
         },
         uploadFile(selectedFile) {
             if (!selectedFile) {
                 showAlertWarning("请选择文件！");
-                return;
+                return false;
             }
+
+            if (selectedFile.size > this.basicInfo.acceptMaxFileSize) {
+                showAlertWarning(`文件大小过大，无法上传！限制大小为${parseFileSize(this.basicInfo.acceptMaxFileSize)}！目前文件大小为${parseFileSize(selectedFile.size)}`);
+                return false;
+            }
+
+            if (this.fileUploading) {
+                showAlertWarning("目前正在有文件上传中，请等待！");
+                return false;
+            }
+
             let url = "/upload/file";
             const formData = new FormData();
             formData.append("file", selectedFile);
@@ -125,8 +139,12 @@ let app = new Vue({
             this.fileUploading = true;
             this.exportKey = "";
 
+            this.fileUploadPercent = 0;
             axios.post(url, formData, {
-                'Content-type': 'multipart/form-data'
+                "Content-type": "multipart/form-data",
+                onUploadProgress: (progressEvent) => {
+                    this.fileUploadPercent = ((progressEvent.loaded * 100) / progressEvent.total).toFixed(2);
+                }
             }).then(res => {
                 this.totalUploadFileInfoDto = new TotalUploadFileInfoDto(res.data.result);
                 if (this.totalUploadFileInfoDto.uploadFileInfoDtoList && this.totalUploadFileInfoDto.uploadFileInfoDtoList.length > 0) {
@@ -137,11 +155,13 @@ let app = new Vue({
                 if (this.totalUploadFileInfoDto.uploadFileInfoDtoList && this.totalUploadFileInfoDto.uploadFileInfoDtoList.length > 1) {
                     showAlertSuccess("上传成功，共" + this.totalUploadFileInfoDto.uploadFileInfoDtoList.length + "个文件");
                 }
+                this.fileUploadPercent = 0;
             }).catch(err => {
                 // 出现错误时的处理
                 showAlertWarning("上传失败，请选择其他文件！" + err.data.message);
                 this.fileUploading = false;
             });
+            return true;
         },
         getUploadFileInfoDto() {
             let url = "/data/getUploadFileInfoDto";
@@ -153,6 +173,12 @@ let app = new Vue({
             if (!uploadFileInfoDto) {
                 this.uploadFileInfoDto = new UploadFileInfoDto();
             } else {
+                if (this.totalUploadFileInfoDto.uploadFileInfoDtoList) {
+                    this.totalUploadFileInfoDto.uploadFileInfoDtoList.forEach((item) => {
+                        item.dataChecked = item.dataId === uploadFileInfoDto.dataId;
+                    });
+                }
+
                 this.uploadFileInfoDto = uploadFileInfoDto;
             }
             this.inputFullId = this.uploadFileInfoDto.getFullId();

@@ -1,9 +1,10 @@
 package cn.sleepybear.fileconvert.controller;
 
-import cn.sleepybear.fileconvert.advice.ResultCode;
 import cn.sleepybear.fileconvert.config.MyConfig;
 import cn.sleepybear.fileconvert.constants.GlobalVariable;
+import cn.sleepybear.fileconvert.dto.BasicInfoDto;
 import jakarta.annotation.Resource;
+import org.springframework.util.unit.DataSize;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -19,8 +20,11 @@ public class SystemController {
     @Resource
     private MyConfig myConfig;
 
-    @RequestMapping("/system/getVersion")
-    public ResultCode<String> getVersion() {
-        return ResultCode.buildResult(myConfig.getVersion());
+    @RequestMapping("/system/getBasicInfoDto")
+    public BasicInfoDto getVersion() {
+        BasicInfoDto basicInfoDto = new BasicInfoDto();
+        basicInfoDto.setVersion(myConfig.getVersion());
+        basicInfoDto.setAcceptMaxFileSize(DataSize.parse(myConfig.getMaxFileSize()).toBytes());
+        return basicInfoDto;
     }
 }

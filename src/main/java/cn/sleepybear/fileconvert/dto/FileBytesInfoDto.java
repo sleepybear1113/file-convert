@@ -1,6 +1,7 @@
 package cn.sleepybear.fileconvert.dto;
 
 import cn.sleepybear.fileconvert.utils.CommonUtil;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,8 +26,14 @@ public class FileBytesInfoDto implements Serializable {
     private String key;
 
     private String filename;
+    @JsonIgnore
     private byte[] bytes;
     private Integer size;
+
+    /**
+     * 本地文件路径，如果不为空，则类型为本地文件
+     */
+    private String localFilePath;
 
     private MediaType contentType;
 

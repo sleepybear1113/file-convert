@@ -19,3 +19,5 @@ my-config:
   export-tmp-dir: tmp/export/
   zip-tmp-dir: tmp/zip/
   version: @project.version@
+  max-file-size: ${spring.servlet.multipart.max-file-size}
+  max-request-size: ${spring.servlet.multipart.max-request-size}

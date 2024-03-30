@@ -1,5 +1,6 @@
 package cn.sleepybear.fileconvert.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +25,8 @@ public class FileStreamDto implements Serializable {
     @Setter
     private String originalFilename;
     private String fileType;
+
+    @JsonIgnore
     private byte[] bytes;
     private Boolean localFile;
     private Long createTime;
