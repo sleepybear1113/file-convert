@@ -1,7 +1,7 @@
 package cn.sleepybear.fileconvert.controller2;
 
 import cn.sleepybear.fileconvert.constants.GlobalVariable;
-import cn.sleepybear.fileconvert.dto.DownloadInfoDto;
+import cn.sleepybear.fileconvert.dto.FileBytesInfoDto;
 import cn.sleepybear.fileconvert.exception.FrontException;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.*;
@@ -29,33 +29,27 @@ public class FileDownloadController {
     public ResponseEntity<byte[]> downloadFile(String exportKey, HttpServletResponse response) {
         response.setCharacterEncoding("UTF-8");
 
-        DownloadInfoDto downloadInfoDto = GlobalVariable.DOWNLOAD_INFO_CACHER.get(exportKey);
-        if (downloadInfoDto == null) {
-            return generateErrorResponse("下载链接已失效！");
+        FileBytesInfoDto fileBytesInfoDto = GlobalVariable.FILE_BYTES_EXPORT_CACHER.get(exportKey);
+        if (fileBytesInfoDto == null) {
+            return generateErrorResponse("文件已过期或者不存在！");
         }
 
-        String fullFilePath = downloadInfoDto.getFullFilePath();
-        if (!new File(fullFilePath).exists()) {
-            return generateErrorResponse("文件不存在或者已过期！");
+        if (!fileBytesInfoDto.hasDownloadTimes()) {
+            return generateErrorResponse("文件下载次数已达上限！");
         }
 
-        downloadInfoDto.addUsedDownloadTimes();
+        fileBytesInfoDto.addUsedDownloadTimes();
 
-        try {
-            ContentDisposition contentDisposition = ContentDisposition.builder("attachment")
-                    .filename(URLEncoder.encode(downloadInfoDto.getFilename(), StandardCharsets.UTF_8))
-                    .build();
+        ContentDisposition contentDisposition = ContentDisposition.attachment()
+                .filename(URLEncoder.encode(fileBytesInfoDto.getFilename(), StandardCharsets.UTF_8))
+                .build();
 
-            byte[] content = Files.readAllBytes(Paths.get(fullFilePath));
-
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString())
-                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                    .contentLength(content.length)
-                    .body(content);
-        } catch (IOException e) {
-            throw new FrontException(e.getMessage());
-        }
+        // 构建返回的文件响应
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString())
+                .contentType(fileBytesInfoDto.getContentType())
+                .contentLength(fileBytesInfoDto.getSize())
+                .body(fileBytesInfoDto.getBytes());
     }
 
     private ResponseEntity<byte[]> generateErrorResponse(String errorMessage) {

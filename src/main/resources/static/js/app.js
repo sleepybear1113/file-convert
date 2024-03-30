@@ -254,7 +254,6 @@ let app = new Vue({
                 }
                 this.exportKey = "";
             }).catch((err) => {
-                this.exportKey = "";
             });
         },
         preProcessExport(exportUrl) {

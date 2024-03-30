@@ -1,16 +1,20 @@
 package cn.sleepybear.fileconvert.logic;
 
+import cn.sleepybear.fileconvert.constants.GlobalVariable;
 import cn.sleepybear.fileconvert.convert.Constants;
 import cn.sleepybear.fileconvert.convert.StringRecords;
 import cn.sleepybear.fileconvert.convert.excel.ExcelReader;
 import cn.sleepybear.fileconvert.dto.DataDto;
+import cn.sleepybear.fileconvert.dto.FileBytesInfoDto;
 import cn.sleepybear.fileconvert.dto.FileStreamDto;
 import cn.sleepybear.fileconvert.dto.TotalDataDto;
+import cn.sleepybear.fileconvert.utils.CommonUtil;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.support.ExcelTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -75,7 +79,7 @@ public class ExcelLogic extends BaseExportLogic {
     }
 
     @Override
-    public void innerExportToFile(DataDto dataDto, String type, String exportFilePath) {
+    public FileBytesInfoDto innerExportToFile(DataDto dataDto, String type, String exportFilename) {
         ExcelTypeEnum excelTypeEnum = ExcelTypeEnum.XLSX;
         for (ExcelTypeEnum value : ExcelTypeEnum.values()) {
             if (value.getValue().equals(type)) {
@@ -83,6 +87,16 @@ public class ExcelLogic extends BaseExportLogic {
                 break;
             }
         }
-        EasyExcel.write(exportFilePath).head(dataDto.getHeadNames()).automaticMergeHead(false).excelType(excelTypeEnum).sheet("sheet1").doWrite(dataDto.getRawDataList());
+        long expireTime = 3600 * 1000L;
+        // 创建字节输出流
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        // 使用 EasyExcel 将数据写入到字节输出流中
+        EasyExcel.write(outputStream).head(dataDto.getHeadNames()).automaticMergeHead(false).excelType(excelTypeEnum).sheet("sheet1").doWrite(dataDto.getRawDataList());
+        // 将字节输出流转换为字节数组
+        byte[] byteArray = outputStream.toByteArray();
+        String excelFileKey = CommonUtil.getRandomStr(8);
+        FileBytesInfoDto fileBytesInfoDto = new FileBytesInfoDto(exportFilename, byteArray, excelFileKey, System.currentTimeMillis() + expireTime);
+        GlobalVariable.FILE_BYTES_EXPORT_CACHER.set(excelFileKey, fileBytesInfoDto, expireTime);
+        return fileBytesInfoDto;
     }
 }

@@ -12,6 +12,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -111,11 +112,11 @@ public class ExportLogic {
 
     /**
      * 从缓存 {@link GlobalVariable#BATCH_DOWNLOAD_INFO_CACHER} 中获取预处理的信息 {@link BatchDownloadInfoDto}，然后对每个 dataDto 进行导出形成对应的文件。<br/>
-     * 最后若生成了若干个文件，则进行压缩。将最终的文件信息放入缓存 {@link GlobalVariable#DOWNLOAD_INFO_CACHER} 中
+     * 最后若生成了若干个文件，则进行压缩。将最终的文件信息放入缓存 {@link GlobalVariable#FILE_BYTES_EXPORT_CACHER} 中
      *
      * @param batchDownloadInfoId BatchDownloadInfoDto 的 batchDownloadInfoId
      * @param excelTypeEnum       excelTypeEnum
-     * @return {@link GlobalVariable#DOWNLOAD_INFO_CACHER} key
+     * @return {@link GlobalVariable#FILE_BYTES_EXPORT_CACHER} key
      */
     public String exportToExcel(String batchDownloadInfoId, ExcelTypeEnum excelTypeEnum) {
         if (excelTypeEnum == null) {
@@ -138,24 +139,25 @@ public class ExportLogic {
 
         // 如果只有一组数据, 则直接导出
         if (CollectionUtils.size(dataDtoList) == 1) {
-            DownloadInfoDto downloadInfoDto = baseExportLogic.exportDataDtoToFile(dataDtoList.getFirst(), myConfig.getExportTmpDir(), exportFileType);
-            GlobalVariable.DOWNLOAD_INFO_CACHER.set(downloadInfoDto.getKey(), downloadInfoDto, 1000L * 3600);
-            return downloadInfoDto.getKey();
+            FileBytesInfoDto fileBytesInfoDto = baseExportLogic.exportDataDtoToFile(dataDtoList.getFirst(), exportFileType);
+            return fileBytesInfoDto.getKey();
         }
 
         // 如果有多组数据, 则压缩后导出
         String midGroupByHeadNames = CollectionUtils.isEmpty(batchDownloadInfoDto.getGroupByIndexes()) ? "" : dataDtoList.getFirst().copy(batchDownloadInfoDto.getGroupByIndexes()).getHeadNameStr("_");
         long start = System.currentTimeMillis();
-        List<DownloadInfoDto> downloadInfoDtoList = new ArrayList<>();
+        List<FileBytesInfoDto> bytesInfoDtoList = new ArrayList<>();
         for (DataDto dto : dataDtoList) {
             // 先对每个文件进行导出
-            DownloadInfoDto downloadInfoDto = baseExportLogic.exportDataDtoToFile(dto, myConfig.getExportTmpDir(), exportFileType);
-            downloadInfoDtoList.add(downloadInfoDto);
+            FileBytesInfoDto fileBytesInfoDto = baseExportLogic.exportDataDtoToFile(dto, exportFileType);
+            bytesInfoDtoList.add(fileBytesInfoDto);
         }
 
-        DownloadInfoDto downloadInfoDto = zipList(downloadInfoDtoList, midGroupByHeadNames, batchDownloadInfoDto.getFilename(), batchDownloadInfoDto.getDataId(), start);
-        GlobalVariable.DOWNLOAD_INFO_CACHER.set(downloadInfoDto.getKey(), downloadInfoDto, 1000L * 3600);
-        return downloadInfoDto.getKey();
+        FileBytesInfoDto fileBytesInfoDto = zipList(bytesInfoDtoList, midGroupByHeadNames, batchDownloadInfoDto.getFilename(), batchDownloadInfoDto.getDataId(), start);
+        long expireTime = 1000L * 3600;
+        fileBytesInfoDto.setExpireTimeAt(System.currentTimeMillis() + expireTime);
+        GlobalVariable.FILE_BYTES_EXPORT_CACHER.set(fileBytesInfoDto.getKey(), fileBytesInfoDto, expireTime);
+        return fileBytesInfoDto.getKey();
     }
 
     public static BatchDownloadInfoDto getBatchDownloadInfoDto(String batchDownloadInfoId) {
@@ -195,40 +197,40 @@ public class ExportLogic {
         return dataDto;
     }
 
-    public DownloadInfoDto zipList(List<DownloadInfoDto> list, String midGroupByHeadNames, String filename, String id, long start) {
+    public FileBytesInfoDto zipList(List<FileBytesInfoDto> list, String midGroupByHeadNames, String filename, String id, long start) {
         long totalFileSize = 0;
-        List<String> filePathList = new ArrayList<>();
-        for (DownloadInfoDto downloadInfoDto : list) {
-            filePathList.add(downloadInfoDto.getFullFilePath());
-            totalFileSize += downloadInfoDto.getSize();
+        List<byte[]> byteFiles = new ArrayList<>();
+        List<String> filenameList = new ArrayList<>();
+
+        for (FileBytesInfoDto fileBytesInfoDto : list) {
+            totalFileSize += fileBytesInfoDto.getSize();
+            byteFiles.add(fileBytesInfoDto.getBytes());
+            filenameList.add(fileBytesInfoDto.getFilename());
         }
 
-        String zipFilePath = "分组导出_%s_%s_%s.zip".formatted(midGroupByHeadNames, filename, CommonUtil.getTime());
-        String exportFilePath = myConfig.getExportTmpDir() + zipFilePath;
+        String zipFilename = "分组导出_%s_%s_%s.zip".formatted(midGroupByHeadNames, filename, CommonUtil.getTime());
         String exportKey = "download_" + CommonUtil.getRandomStr(8);
 
-        log.info("开始压缩文件, dataId = {}, zip = {}, key = {}, fileCount = {}, size = {}", id, zipFilePath, exportKey, list.size(), CommonUtil.getFileSize(totalFileSize));
-        CommonUtil.ensureParentDir(exportFilePath);
-        CommonUtil.compressToZip(filePathList, exportFilePath, true);
-
-        // 装配基本信息
-        File file = new File(exportFilePath);
-        DownloadInfoDto downloadInfoDto = new DownloadInfoDto();
-        downloadInfoDto.setKey(exportKey);
-        downloadInfoDto.setSize(file.length());
-        downloadInfoDto.setFilename(zipFilePath);
-        downloadInfoDto.setFullFilePath(exportFilePath);
+        log.info("开始压缩文件, dataId = {}, zip = {}, key = {}, fileCount = {}, size = {}", id, zipFilename, exportKey, list.size(), CommonUtil.getFileSize(totalFileSize));
+        ByteArrayOutputStream byteArrayOutputStream = CommonUtil.compressBytesToZip(byteFiles, filenameList);
         long end = System.currentTimeMillis();
-        log.info("压缩文件完成, dataId = {}, filename = {}, key = {}, size = {}, time = {}ms", id, zipFilePath, exportKey, downloadInfoDto.fileSizeStr(), (end - start));
-        return downloadInfoDto;
+        if (byteArrayOutputStream == null) {
+            log.warn("压缩文件失败, dataId = {}, filename = {}, key = {}, time = {}ms", id, zipFilename, exportKey, (end - start));
+            return null;
+        }
+        FileBytesInfoDto fileBytesInfoDto = new FileBytesInfoDto(zipFilename, byteArrayOutputStream.toByteArray(), exportKey, null);
+        log.info("压缩文件完成, dataId = {}, filename = {}, key = {}, size = {}, time = {}ms", id, zipFilename, exportKey, fileBytesInfoDto.fileSizeStr(), (end - start));
+
+        return fileBytesInfoDto;
     }
 
     public Boolean deleteDownloadFile(String downloadId) {
-        DownloadInfoDto downloadInfoDto = GlobalVariable.DOWNLOAD_INFO_CACHER.get(downloadId);
-        if (downloadInfoDto == null) {
+        FileBytesInfoDto fileBytesInfoDto = GlobalVariable.FILE_BYTES_EXPORT_CACHER.get(downloadId);
+        if (fileBytesInfoDto == null) {
             throw new FrontException("缓存文件不存在！");
         }
-        GlobalVariable.DOWNLOAD_INFO_CACHER.remove(downloadId, true);
+        GlobalVariable.FILE_BYTES_EXPORT_CACHER.remove(downloadId, true);
+        fileBytesInfoDto.setBytes(null);
         return true;
     }
 }

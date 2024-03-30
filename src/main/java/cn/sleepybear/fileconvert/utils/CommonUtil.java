@@ -281,6 +281,35 @@ public class CommonUtil {
         }
     }
 
+    public static ByteArrayOutputStream compressBytesToZip(List<byte[]> byteFiles, List<String> filenameList) {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        try (ZipArchiveOutputStream zipOut = new ZipArchiveOutputStream(byteArrayOutputStream)) {
+            for (int i = 0; i < byteFiles.size(); i++) {
+                byte[] bytes = byteFiles.get(i);
+                String filename = filenameList.get(i);
+                if (bytes != null) {
+                    try (ByteArrayInputStream byteIn = new ByteArrayInputStream(bytes)) {
+                        ZipArchiveEntry zipEntry = new ZipArchiveEntry(filename);
+                        zipOut.putArchiveEntry(zipEntry);
+
+                        byte[] buffer = new byte[10240];
+                        int length;
+                        while ((length = byteIn.read(buffer)) > 0) {
+                            zipOut.write(buffer, 0, length);
+                        }
+
+                        zipOut.closeArchiveEntry();
+                    }
+                }
+            }
+
+            return byteArrayOutputStream;
+        } catch (IOException e) {
+            log.info("压缩文件失败", e);
+            return null;
+        }
+    }
+
     public static List<String> unzipZipFile(FileStreamDto fileStreamDto, String path) {
         return unzipZipFile(fileStreamDto.getByteArrayInputStream(), path);
     }

@@ -1,16 +1,16 @@
 package cn.sleepybear.fileconvert.logic;
 
+import cn.sleepybear.fileconvert.constants.GlobalVariable;
 import cn.sleepybear.fileconvert.convert.Constants;
 import cn.sleepybear.fileconvert.convert.dbf.DbfConverter;
 import cn.sleepybear.fileconvert.convert.dbf.DbfRecord;
 import cn.sleepybear.fileconvert.convert.dbf.DbfWriter;
-import cn.sleepybear.fileconvert.dto.DataCellDto;
-import cn.sleepybear.fileconvert.dto.DataDto;
-import cn.sleepybear.fileconvert.dto.FileStreamDto;
-import cn.sleepybear.fileconvert.dto.TotalDataDto;
+import cn.sleepybear.fileconvert.dto.*;
+import cn.sleepybear.fileconvert.utils.CommonUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.io.ByteArrayOutputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,7 +54,12 @@ public class DbfLogic extends BaseExportLogic {
     }
 
     @Override
-    public void innerExportToFile(DataDto dataDto, String type, String exportFilePath) {
-        DbfWriter.write(exportFilePath, Charset.forName(DbfConverter.DEFAULT_DBF_CHARSET), dataDto);
+    public FileBytesInfoDto innerExportToFile(DataDto dataDto, String type, String exportFilename) {
+        String key = CommonUtil.getRandomStr(8);
+        long expireTime = 1000L * 3600;
+        ByteArrayOutputStream outputStream = DbfWriter.write(Charset.forName(DbfConverter.DEFAULT_DBF_CHARSET), dataDto);
+        FileBytesInfoDto fileBytesInfoDto = new FileBytesInfoDto(exportFilename, outputStream.toByteArray(), key, System.currentTimeMillis() + expireTime);
+        GlobalVariable.FILE_BYTES_EXPORT_CACHER.set(key, fileBytesInfoDto, expireTime);
+        return fileBytesInfoDto;
     }
 }

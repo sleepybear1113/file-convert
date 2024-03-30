@@ -8,7 +8,9 @@ import com.linuxense.javadbf.DBFField;
 import com.linuxense.javadbf.DBFWriter;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.nio.charset.Charset;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -33,9 +35,10 @@ public class DbfWriter {
         write(path, Charset.forName(DbfConverter.DEFAULT_DBF_CHARSET), dataDto);
     }
 
-    public static void write(String path, Charset charset, DataDto dataDto) {
+    public static ByteArrayOutputStream write(Charset charset, DataDto dataDto) {
         // 创建 DBF 文件
-        DBFWriter writer = new DBFWriter(new File(path), charset);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        DBFWriter writer = new DBFWriter(out, charset);
 
         List<DataCellDto> heads = dataDto.getHeads();
         List<DataCellDto> fixedHeads = dataDto.getFixedHeads();
@@ -69,6 +72,17 @@ public class DbfWriter {
             writer.addRecord(rowData);
         }
         writer.close();
+        return out;
+    }
+
+    public static void write(String filename, Charset charset, DataDto dataDto) {
+        ByteArrayOutputStream outputStream = write(charset, dataDto);
+        File file = new File(filename);
+        try (FileOutputStream fos = new FileOutputStream(file)) {
+            outputStream.writeTo(fos);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     public static String getSubStr(String s, Charset charset, int maxLength) {
