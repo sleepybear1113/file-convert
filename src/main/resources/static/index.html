@@ -13,6 +13,37 @@
 <script src="js/objects.js?v=1.0.5.10"></script>
 <script src="js/util.js?v=1.0.5.10"></script>
 <style>
+    body {
+        height: 98vh;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    #main {
+        min-height: 98vh;
+        width: 95vw;
+        position: relative;
+    }
+
+    .dragging-over * {
+        pointer-events: none;
+    }
+
+    #uploadMask {
+        min-height: 98%;
+        width: 95vw;
+        background-color: rgba(96, 212, 255, 0.2);
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 100;
+        padding: 100px;
+        border: 2px dashed black;
+        border-radius: 30px;
+    }
+
     .num-input {
         width: 90px;
     }
@@ -21,18 +52,13 @@
         font-weight: bold;
         background-color: #f2f2f2;
     }
-
-    .drag {
-        border-color: #1e90ff;
-        background-color: #f0f8ff;
-        color: #1e90ff;
-    }
 </style>
 <body>
 
-<div>
-    <div id="app" style="margin-right: 30px; margin-left: 30px">
-        <!-- 头部组件 -->
+<div id="app" style="margin-right: 30px; margin-left: 30px" @drop="handleFileSelect" @dragover="dragOverHandler"
+     @dragenter="dragEnterHandler" @dragleave="dragLeaveHandler">
+    <div id="innerDiv">
+        <!-- 头部组件，默认不可见 -->
         <div>
             <!-- 提示框 -->
             <div id="alert-div"></div>
@@ -41,7 +67,8 @@
             <div id="input-div" style="display: none"></div>
 
             <!-- 确认对话框的模态框组件 -->
-            <div class="modal fade" id="confirmModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+            <div class="modal fade" id="confirmModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+                 aria-labelledby="confirmModalLabel" aria-hidden="true">
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
@@ -52,63 +79,75 @@
                             <p>{{confirmData.content}}</p>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @click="confirmAction(confirmData.action, false, confirmData.data)">取消</button>
-                            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" @click="confirmAction(confirmData.action, true, confirmData.data)">确认</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                                    @click="confirmAction(confirmData.action, false, confirmData.data)">取消
+                            </button>
+                            <button type="button" class="btn btn-primary" data-bs-dismiss="modal"
+                                    @click="confirmAction(confirmData.action, true, confirmData.data)">确认
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- 导航条 -->
+        <!-- 导航条 -->
+        <div id="navDiv">
             <nav class="navbar" style="background-color: #e3f2fd;">
                 <div class="container-fluid">
                     <a class="navbar-brand" href="#">文件转换</a>
-                    <span>{{version? version: ""}}</span>
+                    <span>{{version ? version : ""}}</span>
                 </div>
             </nav>
         </div>
 
-        <!-- 上传组件 -->
-        <div class="row g-5">
-            <div class="col-md-5 d-flex">
-                <label class="input-group-text input-group-sm mb-3">
-                    <span id="fileDropArea" class="text-truncate" style="max-width: 300px; min-width: 100px" @drop="handleFileSelect" @dragover="dragOverHandler" @dragenter="dragEnterHandler" @dragleave="dragLeaveHandler">
-                        {{!selectedFileName? "请拖动/选择[Excel/CSV/DBF]文件": selectedFileName}}
+        <div id="main">
+            <!-- 上传组件 -->
+            <div class="row g-5">
+                <div class="col-md-5 d-flex">
+                    <label class="input-group-text input-group-sm mb-3">
+                    <span id="fileDropArea" class="text-truncate" style="max-width: 300px; min-width: 100px">
+                        {{!selectedFileName ? "请拖动/选择[Excel/CSV/DBF]文件" : selectedFileName}}
                     </span>
-                    <button class="btn btn-outline-secondary" v-if="!fileUploading" @click="createInputUpload(1)">浏览</button>
-                    <button class="btn btn-secondary" type="button" disabled v-if="fileUploading">
-                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                        <span class="visually-hidden">上传中...</span>
-                    </button>
-                </label>
-            </div>
-            <div class="col-md-4 d-flex">
-                <label class="input-group-text input-group-sm mb-3" for="dataId">
-                    文件编号：<input class="form-control" id="dataId" v-model="inputFullId">
-                    <button class="btn btn-outline-secondary" @click="getDataList(1, true)" :disabled="dataLoading">获取数据</button>
-                </label>
-            </div>
-            <div class="col-md-3">
-                <div class="form-check">
-                    <label class="form-check-label" for="delete">文件仅留存于程序内存</label>
-                    <input v-model="deleteAfterUpload" class="form-check-input" type="checkbox" id="delete" checked>
-                </div>
-                <div class="form-check">
-                    <label>
-                        <input class="form-check-input" type="checkbox" checked disabled>
-                        <label class="input-group-text" for="expireTime">
-                            数据保存内存中时间
-                            <input type="number" id="expireTime" class="form-control" v-model="expireTimeMinutes" style="min-width: 50px">
-                            分钟
-                        </label>
+                        <button class="btn btn-outline-secondary" v-if="!fileUploading" @click="createInputUpload(1)">
+                            浏览
+                        </button>
+                        <button class="btn btn-secondary" type="button" disabled v-if="fileUploading">
+                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                            <span class="visually-hidden">上传中...</span>
+                        </button>
                     </label>
                 </div>
+                <div class="col-md-4 d-flex">
+                    <label class="input-group-text input-group-sm mb-3" for="dataId">
+                        文件编号：<input class="form-control" id="dataId" v-model="inputFullId">
+                        <button class="btn btn-outline-secondary" @click="getDataList(1, true)" :disabled="dataLoading">
+                            获取数据
+                        </button>
+                    </label>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-check">
+                        <label class="form-check-label" for="delete">文件仅留存于程序内存</label>
+                        <input v-model="deleteAfterUpload" class="form-check-input" type="checkbox" id="delete" checked>
+                    </div>
+                    <div class="form-check">
+                        <label>
+                            <input class="form-check-input" type="checkbox" checked disabled>
+                            <label class="input-group-text" for="expireTime">
+                                数据保存内存中时间
+                                <input type="number" id="expireTime" class="form-control" v-model="expireTimeMinutes"
+                                       style="min-width: 50px">
+                                分钟
+                            </label>
+                        </label>
+                    </div>
+                </div>
             </div>
-        </div>
 
-        <!-- 文件信息组件 -->
-        <div class="row" v-if="dataDto && dataDto.dataList && dataDto.dataList.length > 0">
-            <div class="col-md-12 d-flex">
+            <!-- 文件信息组件 -->
+            <div class="row" v-if="dataDto && dataDto.dataList && dataDto.dataList.length">
+                <div class="col-md-12 d-flex">
             <span class="input-group-text">
                 文件名：
                 <span class="input-group-text" v-if="dataDto.filename">
@@ -116,213 +155,265 @@
                 </span>
                 <button class="btn btn-outline-secondary" @click="deleteByDataId">从内存中删除</button>
             </span>
-            </div>
-
-            <div class="col-md-12 d-flex">
-                <span class="input-group-text">上传时间：{{parseTimeToStr(dataDto.createTime)}}</span>
-                <span class="input-group-text">过期时间：{{parseTimeToStr(dataDto.createTime + dataDto.expireTime)}}</span>
-                <span class="input-group-text">数据条数：{{dataDto.recordNums}}</span>
-                <span class="input-group-text">共有字段：{{dataDto.heads == null? "": dataDto.heads.length + " 个"}}</span>
-            </div>
-
-            <div class="col-md-12 d-flex">
-                <span class="input-group-text">字段列表：</span>
-                <div class="input-group-text row">
-                    <button class="btn btn-outline-secondary" @click="changeColDisplay(true)">全部显示</button>
-                    <button class="btn btn-outline-secondary" @click="changeColDisplay(false)">全部隐藏</button>
-                    <button class="btn btn-outline-secondary" @click="changeColDisplay()">反选</button>
                 </div>
-                <div class="input-group-text gap-1" style="flex-wrap: wrap" v-if="dataDto.heads">
-                    <button class="btn btn-outline-secondary" :class="head.shown? 'active': ''"
-                            data-bs-toggle="button" v-for="head in dataDto.heads" @click="head.shown = !head.shown">
-                        {{head.value? head.value: "　"}}
-                    </button>
-                </div>
-            </div>
-            <hr>
-        </div>
 
-        <div class="accordion" id="accordionPanelsStayOpenExample" v-if="totalUploadFileInfoDto.uploadFileInfoDtoList && totalUploadFileInfoDto.uploadFileInfoDtoList.length > 1">
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseOne" aria-expanded="true" aria-controls="panelsStayOpen-collapseOne">
-                        展开选择其他文件
-                    </button>
-                </h2>
-                <div id="panelsStayOpen-collapseOne" class="accordion-collapse collapse show">
-                    <div class="accordion-body" style="flex-wrap: wrap">
-                        <button v-if="!enableExportZip" class="btn btn-outline-secondary" v-for="info in totalUploadFileInfoDto.uploadFileInfoDtoList" @click="changeFileData(info)">{{info.filename}}</button>
-                        <button v-if="enableExportZip" class="btn btn-outline-secondary" :class="info.checked? 'active': ''" data-bs-toggle="button" v-for="info in totalUploadFileInfoDto.uploadFileInfoDtoList" @click="info.checked = !info.checked">{{info.filename}}</button>
+                <div class="col-md-12 d-flex">
+                    <span class="input-group-text">上传时间：{{parseTimeToStr(dataDto.createTime)}}</span>
+                    <span class="input-group-text">过期时间：{{parseTimeToStr(dataDto.createTime + dataDto.expireTime)}}</span>
+                    <span class="input-group-text">数据条数：{{dataDto.recordNums}}</span>
+                    <span class="input-group-text">共有字段：{{dataDto.heads == null ? "" : dataDto.heads.length + " 个"}}</span>
+                </div>
+
+                <div class="col-md-12 d-flex">
+                    <span class="input-group-text">字段列表：</span>
+                    <div class="input-group-text row">
+                        <button class="btn btn-outline-secondary" @click="changeColDisplay(true)">全部显示</button>
+                        <button class="btn btn-outline-secondary" @click="changeColDisplay(false)">全部隐藏</button>
+                        <button class="btn btn-outline-secondary" @click="changeColDisplay()">反选</button>
                     </div>
-                    <hr>
-                    <div style="flex-wrap: wrap">
-                        <label class="input-group-text">
-                            勾选导出压缩包
-                            <input class="form-check-input" type="checkbox" v-model="enableExportZip">
+                    <div class="input-group-text gap-1" style="flex-wrap: wrap" v-if="dataDto.heads">
+                        <button class="btn btn-outline-secondary" :class="head.shown? 'active': ''"
+                                data-bs-toggle="button" v-for="head in dataDto.heads" @click="head.shown = !head.shown">
+                            {{head.value ? head.value : "　"}}
+                        </button>
+                    </div>
+                </div>
+                <hr>
+            </div>
+
+            <div class="accordion" id="accordionPanelsStayOpenExample"
+                 v-if="totalUploadFileInfoDto.uploadFileInfoDtoList && totalUploadFileInfoDto.uploadFileInfoDtoList.length > 1">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#panelsStayOpen-collapseOne" aria-expanded="true"
+                                aria-controls="panelsStayOpen-collapseOne">
+                            展开选择其他文件
+                        </button>
+                    </h2>
+                    <div id="panelsStayOpen-collapseOne" class="accordion-collapse collapse show">
+                        <div class="accordion-body" style="flex-wrap: wrap">
+                            <button v-if="!enableExportZip" class="btn btn-outline-secondary"
+                                    v-for="info in totalUploadFileInfoDto.uploadFileInfoDtoList"
+                                    @click="changeFileData(info)">{{info.filename}}
+                            </button>
+                            <button v-if="enableExportZip" class="btn btn-outline-secondary"
+                                    :class="info.checked? 'active': ''" data-bs-toggle="button"
+                                    v-for="info in totalUploadFileInfoDto.uploadFileInfoDtoList"
+                                    @click="info.checked = !info.checked">{{info.filename}}
+                            </button>
+                        </div>
+                        <hr>
+                        <div style="flex-wrap: wrap">
+                            <label class="input-group-text">
+                                勾选导出压缩包
+                                <input class="form-check-input" type="checkbox" v-model="enableExportZip">
+                            </label>
+                        </div>
+                        <hr>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 文件导出组件 -->
+            <div v-if="dataDto && dataDto.dataList && dataDto.dataList.length">
+                <button v-if="!exporting" class="btn btn-outline-secondary"
+                        v-show="!enableGroupByIndexes && !enableExportZip" v-for="(button, index) in exportButtonList"
+                        @click="preProcessExport(button.url)" :disabled="exporting">{{button.name}}
+                </button>
+                <button v-if="!exporting" class="btn btn-outline-secondary"
+                        v-show="enableGroupByIndexes || enableExportZip" v-for="(button, index) in exportZipButtonList"
+                        @click="preProcessExport(button.url)" :disabled="exporting">{{button.name}}
+                </button>
+                <button class="btn btn-secondary" type="button" disabled v-if="exporting">
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    <span>文件处理中...</span>
+                </button>
+
+                <a id="download-ele-a" v-show="exportKey"
+                   :href="downloadPrefix + exportKey">没有自动弹出下载？点击这里重试(1小时后过期删除)</a>
+                <button class="btn btn-outline-secondary" v-show="exportKey" @click="deleteDownloadFile(exportKey)">
+                    从服务器上立即删除该文件
+                </button>
+            </div>
+
+            <!-- 自定义数据组件 -->
+            <div v-if="dataDto && dataDto.dataList && dataDto.dataList.length">
+                <div class="d-flex">
+                    <label class="input-group-text" for="choose-all">
+                        <input class="form-check-input" type="radio" name="choose" id="choose-all" value="true"
+                               v-model="chooseAll">
+                        全部数据
+                    </label>
+                    <label class="input-group-text" for="choose-some">
+                        <input class="form-check-input" type="radio" name="choose" id="choose-some" value="false"
+                               v-model="chooseAll">
+                        自定义数量数据
+                    </label>
+                    <div v-if="chooseAll === false || chooseAll === 'false'" class="d-flex">
+                        <label class="input-group-text" for="import-start">
+                            开始
+                            <input id="import-start" type="number" v-model="exportStart" min="1"
+                                   class="num-input form-check-input">
+                        </label>
+                        <label class="input-group-text" for="import-end">
+                            结束
+                            <input id="import-end" type="number" v-model="exportEnd" min="1"
+                                   class="num-input form-check-input">
                         </label>
                     </div>
-                    <hr>
                 </div>
-            </div>
-        </div>
-
-        <!-- 文件导出组件 -->
-        <div v-if="dataDto && dataDto.dataList && dataDto.dataList.length > 0">
-            <button v-if="!exporting" class="btn btn-outline-secondary" v-show="!enableGroupByIndexes && !enableExportZip" v-for="(button, index) in exportButtonList" @click="preProcessExport(button.url)" :disabled="exporting">{{button.name}}</button>
-            <button v-if="!exporting" class="btn btn-outline-secondary" v-show="enableGroupByIndexes || enableExportZip" v-for="(button, index) in exportZipButtonList" @click="preProcessExport(button.url)" :disabled="exporting">{{button.name}}</button>
-            <button class="btn btn-secondary" type="button" disabled v-if="exporting">
-                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                <span>文件处理中...</span>
-            </button>
-
-            <a id="download-ele-a" v-show="exportKey" :href="downloadPrefix + exportKey">没有自动弹出下载？点击这里重试(1小时后过期删除)</a>
-            <button class="btn btn-outline-secondary" v-show="exportKey" @click="deleteDownloadFile(exportKey)">从服务器上立即删除该文件</button>
-        </div>
-
-        <!-- 自定义数据组件 -->
-        <div v-if="dataDto && dataDto.dataList && dataDto.dataList.length > 0">
-            <div class="d-flex">
-                <label class="input-group-text" for="choose-all">
-                    <input class="form-check-input" type="radio" name="choose" id="choose-all" value="true" v-model="chooseAll">
-                    全部数据
-                </label>
-                <label class="input-group-text" for="choose-some">
-                    <input class="form-check-input" type="radio" name="choose" id="choose-some" value="false" v-model="chooseAll">
-                    自定义数量数据
-                </label>
-                <div v-if="chooseAll === false || chooseAll === 'false'" class="d-flex">
-                    <label class="input-group-text" for="import-start">
-                        开始
-                        <input id="import-start" type="number" v-model="exportStart" min="1" class="num-input form-check-input">
+                <div class="d-flex" v-show="initTooltip()">
+                    <label class="input-group-text">
+                        <svg v-show="initTooltip()" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                             fill="currentColor" class="bi bi-question-circle-fill x-tooltip" viewBox="0 0 16 16"
+                             data-bs-toggle="tooltip" data-bs-placement="top"
+                             data-bs-title="开启后，勾选对应列，那么会将勾选的列作为分组字段，相同的列中的字段会分配到同一个文件中，最终多个文件打包为一个压缩包（简单来说就是，如果有一份数据，包含省份和身份证，那么勾选了省份列后，会给每个省份导出一份文件，每个文件包含该省份下身份证的数据）。">
+                            <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM5.496 6.033h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286a.237.237 0 0 0 .241.247zm2.325 6.443c.61 0 1.029-.394 1.029-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94 0 .533.425.927 1.01.927z"/>
+                        </svg>
                     </label>
-                    <label class="input-group-text" for="import-end">
-                        结束
-                        <input id="import-end" type="number" v-model="exportEnd" min="1" class="num-input form-check-input">
+                    <label class="input-group-text">
+                        勾选特定列分组分文件导出
+                        <input class="form-check-input" type="checkbox" v-model="enableGroupByIndexes"
+                               @click="enableGroupByChange()">
                     </label>
                 </div>
+                <hr>
             </div>
-            <div class="d-flex" v-show="initTooltip()">
+
+            <!-- 分页组件 -->
+            <div class="d-flex" v-if="dataDto && dataDto.dataList && dataDto.dataList.length">
                 <label class="input-group-text">
-                    <svg v-show="initTooltip()" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-question-circle-fill x-tooltip" viewBox="0 0 16 16" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="开启后，勾选对应列，那么会将勾选的列作为分组字段，相同的列中的字段会分配到同一个文件中，最终多个文件打包为一个压缩包（简单来说就是，如果有一份数据，包含省份和身份证，那么勾选了省份列后，会给每个省份导出一份文件，每个文件包含该省份下身份证的数据）。">
-                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM5.496 6.033h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286a.237.237 0 0 0 .241.247zm2.325 6.443c.61 0 1.029-.394 1.029-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94 0 .533.425.927 1.01.927z"/>
-                    </svg>
+                    每页数据行数<input type="number" v-model="rowCount" class="form-control num-input">
                 </label>
-                <label class="input-group-text">
-                    勾选特定列分组分文件导出
-                    <input class="form-check-input" type="checkbox" v-model="enableGroupByIndexes" @click="enableGroupByChange()">
+                <button class="btn btn-outline-secondary" @click="changePage(0)" :disabled="dataLoading">首页</button>
+                <button class="btn btn-outline-secondary" @click="changePage(-1)" :disabled="dataLoading">上一页
+                </button>
+                <label class="input-group-text" style="display: flex;">
+                    页码
+                    <input class="form-control num-input" type="number" v-model="page">
                 </label>
+                <span class="input-group-text"
+                      v-if="dataDto && dataDto.pageInfo && dataDto.pageInfo.totalPage">总共{{dataDto.pageInfo.totalPage}}页</span>
+                <button class="btn btn-outline-secondary" @click="changePage(1)" :disabled="dataLoading">下一页</button>
+                <button class="btn btn-outline-secondary" @click="getDataList(page)" :disabled="dataLoading">获取数据
+                </button>
             </div>
-            <hr>
-        </div>
 
-        <!-- 分页组件 -->
-        <div class="d-flex" v-if="dataDto && dataDto.dataList && dataDto.dataList.length > 0">
-            <label class="input-group-text">
-                每页数据行数<input type="number" v-model="rowCount" class="form-control num-input">
-            </label>
-            <button class="btn btn-outline-secondary" @click="changePage(0)" :disabled="dataLoading">首页</button>
-            <button class="btn btn-outline-secondary" @click="changePage(-1)" :disabled="dataLoading">上一页</button>
-            <label class="input-group-text" style="display: flex;">
-                页码
-                <input class="form-control num-input" type="number" v-model="page">
-            </label>
-            <span class="input-group-text" v-if="dataDto && dataDto.pageInfo && dataDto.pageInfo.totalPage">总共{{dataDto.pageInfo.totalPage}}页</span>
-            <button class="btn btn-outline-secondary" @click="changePage(1)" :disabled="dataLoading">下一页</button>
-            <button class="btn btn-outline-secondary" @click="getDataList(page)" :disabled="dataLoading">获取数据</button>
-        </div>
-
-        <!-- 表格 -->
-        <div id="table-data" class="table-responsive" v-if="dataDto && dataDto.dataList && dataDto.dataList.length > 0">
-            <table class="table table-striped table-hover table-bordered table-sm">
-                <thead class="table-light">
-                <!--选择表头 checkBox-->
-                <tr v-show="enableGroupByIndexes">
-                    <td class="text-nowrap">文件分组</td>
-                    <template v-for="(head, index) in dataDto.heads">
-                        <td v-if="head.shown">
-                            <label><input type="checkbox" class="form-check-input" v-model="head.groupByChecked"></label>
-                        </td>
-                    </template>
-                </tr>
-
-                <!--序号-->
-                <tr>
-                    <td class="text-nowrap">序号</td>
-                    <template v-for="(count, index) in dataDto.colCounts">
-                        <td class="text-nowrap" v-if="dataDto.heads[index].shown">{{index + 1}}</td>
-                    </template>
-                </tr>
-
-                <!--处理表头字段-->
-                <tr>
-                    <td class="text-nowrap">去重数量</td>
-                    <template v-for="(count, index) in dataDto.colCounts">
-                        <td class="text-nowrap" v-if="dataDto.heads[index].shown">{{count}}</td>
-                    </template>
-                </tr>
-
-                <!--原始表头字段-->
-                <tr>
-                    <td class="text-nowrap">原始表头</td>
-                    <template v-for="(head, index) in dataDto.heads">
-                        <td class="text-nowrap" v-if="dataDto.heads[index].shown">{{head.value}}</td>
-                    </template>
-                </tr>
-
-                <!--处理表头字段-->
-                <tr>
-                    <td class="text-nowrap">处理表头</td>
-                    <template v-for="(head, index) in dataDto.fixedHeads">
-                        <td class="text-nowrap" v-if="dataDto.heads[index].shown">{{head.value}}</td>
-                    </template>
-                </tr>
-                </thead>
-
-                <tbody class="table-group-divider">
-                <template v-for="(row, index) in dataDto.dataList">
-                    <tr>
-                        <td>{{(dataDto.pageInfo.page - 1) * dataDto.pageInfo.rowCount + index + 1}}</td>
-                        <template v-for="(col, index) in row">
-                            <td v-if="dataDto.heads[index].shown">{{col.value}}</td>
+            <!-- 表格 -->
+            <div id="table-data" class="table-responsive"
+                 v-if="dataDto && dataDto.dataList && dataDto.dataList.length">
+                <table class="table table-striped table-hover table-bordered table-sm">
+                    <thead class="table-light">
+                    <!--选择表头 checkBox-->
+                    <tr v-show="enableGroupByIndexes">
+                        <td class="text-nowrap">文件分组</td>
+                        <template v-for="(head, index) in dataDto.heads">
+                            <td v-if="head.shown">
+                                <label><input type="checkbox" class="form-check-input"
+                                              v-model="head.groupByChecked"></label>
+                            </td>
                         </template>
                     </tr>
-                </template>
-                </tbody>
-            </table>
-        </div>
 
-        <!-- 分页组件 -->
-        <div class="d-flex" v-if="dataDto && dataDto.dataList && dataDto.dataList.length > 0">
-            <label class="input-group-text">
-                每页数据行数<input type="number" v-model="rowCount" class="form-control num-input">
-            </label>
-            <button class="btn btn-outline-secondary" @click="changePage(0)" :disabled="dataLoading">首页</button>
-            <button class="btn btn-outline-secondary" @click="changePage(-1)" :disabled="dataLoading">上一页</button>
-            <label class="input-group-text" style="display: flex;">
-                页码
-                <input class="form-control num-input" type="number" v-model="page">
-            </label>
-            <span class="input-group-text" v-if="dataDto && dataDto.pageInfo && dataDto.pageInfo.totalPage">总共{{dataDto.pageInfo.totalPage}}页</span>
-            <button class="btn btn-outline-secondary" @click="changePage(1)" :disabled="dataLoading">下一页</button>
-            <button class="btn btn-outline-secondary" @click="getDataList(page)" :disabled="dataLoading">获取数据</button>
-        </div>
+                    <!--序号-->
+                    <tr>
+                        <td class="text-nowrap text-center">序号</td>
+                        <template v-for="(count, index) in dataDto.colCounts">
+                            <td class="text-nowrap text-center" v-if="dataDto.heads[index].shown">
+                                <span>{{index + 1}}</span>
+                            </td>
+                        </template>
+                    </tr>
 
-        <!-- 中间 confirm 组件 -->
-        <div class="toast-container position-fixed bottom-0 end-0 p-3">
-            <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-                <div class="toast-header">
-                    <strong class="me-auto">提示</strong>
-                    <small>{{parseTimeToStr(new Date().getTime())}}</small>
-                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    <!--处理表头字段-->
+                    <tr>
+                        <td class="text-nowrap text-center">去重数量</td>
+                        <template v-for="(count, index) in dataDto.colCounts">
+                            <td class="text-nowrap text-center" v-if="dataDto.heads[index].shown">
+                                <span>{{count + 1}}</span>
+                            </td>
+                        </template>
+                    </tr>
+
+                    <!--原始表头字段-->
+                    <tr>
+                        <td class="text-nowrap text-center">原始表头</td>
+                        <template v-for="(head, index) in dataDto.heads">
+                            <td class="text-nowrap text-center" v-if="dataDto.heads[index].shown">
+                                <span class="text-center">{{head.value}}</span>
+                            </td>
+                        </template>
+                    </tr>
+
+                    <!--处理表头字段-->
+                    <tr v-show="dataDto.hasFixedHead">
+                        <td class="text-nowrap text-center">处理表头</td>
+                        <template v-for="(head, index) in dataDto.fixedHeads">
+                            <td class="text-nowrap text-center" v-if="dataDto.heads[index].shown">
+                                <span>{{head.value}}</span>
+                            </td>
+                        </template>
+                    </tr>
+                    </thead>
+
+                    <tbody class="table-group-divider">
+                    <template v-for="(row, index) in dataDto.dataList">
+                        <tr>
+                            <td class="text-center">
+                                <span>{{(dataDto.pageInfo.page - 1) * dataDto.pageInfo.rowCount + index + 1}}</span>
+                            </td>
+                            <template v-for="(col, index) in row">
+                                <td v-if="dataDto.heads[index].shown">{{col.value}}</td>
+                            </template>
+                        </tr>
+                    </template>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 分页组件 -->
+            <div class="d-flex" v-if="dataDto && dataDto.dataList && dataDto.dataList.length">
+                <label class="input-group-text">
+                    每页数据行数<input type="number" v-model="rowCount" class="form-control num-input">
+                </label>
+                <button class="btn btn-outline-secondary" @click="changePage(0)" :disabled="dataLoading">首页</button>
+                <button class="btn btn-outline-secondary" @click="changePage(-1)" :disabled="dataLoading">上一页
+                </button>
+                <label class="input-group-text" style="display: flex;">
+                    页码
+                    <input class="form-control num-input" type="number" v-model="page">
+                </label>
+                <span class="input-group-text"
+                      v-if="dataDto && dataDto.pageInfo && dataDto.pageInfo.totalPage">总共{{dataDto.pageInfo.totalPage}}页</span>
+                <button class="btn btn-outline-secondary" @click="changePage(1)" :disabled="dataLoading">下一页</button>
+                <button class="btn btn-outline-secondary" @click="getDataList(page)" :disabled="dataLoading">获取数据
+                </button>
+            </div>
+
+            <!-- 中间 confirm 组件 -->
+            <div class="toast-container position-fixed bottom-0 end-0 p-3">
+                <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header">
+                        <strong class="me-auto">提示</strong>
+                        <small>{{parseTimeToStr(new Date().getTime())}}</small>
+                        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body">
+                        {{toastMsg}}
+                    </div>
                 </div>
-                <div class="toast-body">
-                    {{toastMsg}}
+            </div>
+
+            <!-- 上传文件的遮罩层 -->
+            <div id="uploadMask" v-show="showUploadMask">
+                <div style="text-align: center; margin-top: 100px; background-color: white; z-index: 90">
+                    <h1 style="margin-top: 200px">松开鼠标上传文件</h1>
                 </div>
             </div>
         </div>
+
     </div>
-
-
 </div>
 
 <script src="js/app.js?v=1.0.5.10"></script>

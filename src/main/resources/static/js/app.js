@@ -1,6 +1,9 @@
 let app = new Vue({
     el: '#app',
     data: {
+        showUploadMask: false,
+        lastDragEnter: null,
+
         version: "",
         inputFullId: "",
         downloadPrefix: axios.defaults.baseURL + "/download/downloadFile?exportKey=",
@@ -43,6 +46,14 @@ let app = new Vue({
     },
     created() {
         this.getVersion();
+
+        const parentElement = document.getElementById('uploadMask');
+        parentElement.classList.add('uploadMask')
+        const childElements = parentElement.querySelectorAll('*');
+
+        childElements.forEach(function (child) {
+            child.classList.add('uploadMask');
+        });
     },
     methods: {
         getVersion() {
@@ -420,21 +431,29 @@ let app = new Vue({
         handleFileSelect(event) {
             event.preventDefault();
             this.changeFile(event);
-            this.resetStyle();
+            this.showUploadMask = false
+            document.getElementById("main").classList.remove('dragging-over');
         },
         dragOverHandler(event) {
             event.preventDefault();
+            event.stopPropagation();
+            this.showUploadMask = true;
         },
         dragEnterHandler(event) {
             event.preventDefault();
-            document.getElementById('fileDropArea').classList.add('drag');
+            this.showUploadMask = true
+            document.getElementById("main").classList.add("dragging-over");
+            this.lastDragEnter = event.target;
         },
         dragLeaveHandler(event) {
             event.preventDefault();
-            this.resetStyle();
-        },
-        resetStyle() {
-            document.getElementById('fileDropArea').classList.remove('drag');
+            if (this.lastDragEnter === event.target) {
+                console.log('dragleave', event.target);
+                document.getElementById("main").classList.remove('dragging-over');
+                event.stopPropagation();
+                event.preventDefault();
+                this.showUploadMask = false
+            }
         },
     }
 });

@@ -33,12 +33,12 @@ public class DataDto implements Serializable {
 
     private List<DataCellDto> heads;
     private List<DataCellDto> fixedHeads;
+    private Boolean hasFixedHeader;
 
     /**
      * 每列去重后的数量
      */
     private List<Integer> colCounts;
-    private Boolean hasFixedHeader;
 
     private List<List<DataCellDto>> dataList;
     private Integer recordNums;
@@ -89,11 +89,12 @@ public class DataDto implements Serializable {
     }
 
     public void buildFixedHeads() {
+        hasFixedHeader = false;
         if (CollectionUtils.isEmpty(heads)) {
             return;
         }
 
-        // 合法的表头
+        // 合法的表头，包括修正的和原始的
         List<String> fixedHeadNames = new ArrayList<>();
         for (DataCellDto head : heads) {
             Object value = head.getValue();
@@ -106,10 +107,8 @@ public class DataDto implements Serializable {
                     string = "_" + string;
                 }
                 fixedHeadNames.add(string);
-            } else if (string == null) {
-                fixedHeadNames.add("_");
             } else {
-                fixedHeadNames.add(null);
+                fixedHeadNames.add(Objects.requireNonNullElse(string, "_"));
             }
         }
 
@@ -139,12 +138,11 @@ public class DataDto implements Serializable {
             fixedHead.setLengthByte(head.getLengthByte());
             fixedHead.setAcceptDataTypes(head.getAcceptDataTypes());
 
-            if (fixedHeadNames.get(i) != null) {
-                fixedHead.setValue(fixedHeadNames.get(i));
+            fixedHead.setValue(fixedHeadNames.get(i));
+            if (!fixedHeadNames.get(i).equals(head.getValue())) {
                 fixedHead.setFixed(true);
                 hasFixedHeader = true;
             } else {
-                fixedHead.setValue(head.getValue());
                 fixedHead.setFixed(false);
             }
 

@@ -4,6 +4,7 @@ import cn.sleepybear.fileconvert.constants.GlobalVariable;
 import cn.sleepybear.fileconvert.dto.DataDto;
 import cn.sleepybear.fileconvert.dto.TotalDataDto;
 import cn.sleepybear.fileconvert.dto.TotalUploadFileInfoDto;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -25,6 +26,11 @@ public class DataController {
 
     @RequestMapping("/data/getDataList")
     public DataDto getDataList(String id, Integer page, Integer rowCount) {
+        if (StringUtils.isBlank(id)) {
+            return null;
+        }
+
+        id = id.trim();
         DataDto dataDto = TotalDataDto.getDataDtoById(id);
         return dataDto.subRowsDataDto(page, rowCount);
     }
