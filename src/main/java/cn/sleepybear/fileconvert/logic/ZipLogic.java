@@ -58,7 +58,7 @@ public class ZipLogic {
 
             TotalDataDto innerTotalDataDto = null;
             try {
-                innerTotalDataDto = processDataLogic.processData(tmpFileStreamDto, expireTime);
+                innerTotalDataDto = processDataLogic.processData(tmpFileStreamDto, expireTime, null);
             } catch (Exception e) {
                 log.error("处理文件 {} 失败：{}", tmpFileStreamDto.getOriginalFilename(), e.getMessage());
             }

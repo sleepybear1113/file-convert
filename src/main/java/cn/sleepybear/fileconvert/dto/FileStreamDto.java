@@ -1,6 +1,7 @@
 package cn.sleepybear.fileconvert.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +17,7 @@ import java.io.*;
  */
 @Data
 @Slf4j
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class FileStreamDto implements Serializable {
     @Serial
     private static final long serialVersionUID = 3960579933686268396L;

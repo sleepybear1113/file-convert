@@ -27,4 +27,8 @@ public class SystemController {
         basicInfoDto.setAcceptMaxFileSize(DataSize.parse(myConfig.getMaxFileSize()).toBytes());
         return basicInfoDto;
     }
+
+    @RequestMapping("/test")
+    public void test() {
+    }
 }

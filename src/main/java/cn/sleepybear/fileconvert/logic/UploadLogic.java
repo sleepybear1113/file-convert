@@ -34,7 +34,7 @@ public class UploadLogic {
     @Resource
     private ProcessDataLogic processDataLogic;
 
-    public TotalUploadFileInfoDto uploadFile(MultipartFile file, String fileType, Boolean deleteAfterUpload, Integer expireTimeMinutes) {
+    public TotalUploadFileInfoDto uploadFile(MultipartFile file, String fileType, Boolean deleteAfterUpload, Integer expireTimeMinutes, String id) {
         String originalFilename = file.getOriginalFilename();
         if (originalFilename == null || StringUtils.isBlank(originalFilename)) {
             originalFilename = "null";
@@ -55,7 +55,7 @@ public class UploadLogic {
         }
 
         FileStreamDto fileStreamDto = getInputStream(file, fileType, deleteAfterUpload);
-        TotalDataDto totalDataDto = processDataLogic.processData(fileStreamDto, expireTime);
+        TotalDataDto totalDataDto = processDataLogic.processData(fileStreamDto, expireTime, id);
 
         return TotalUploadFileInfoDto.buildTotalUploadFileInfoDto(totalDataDto);
     }

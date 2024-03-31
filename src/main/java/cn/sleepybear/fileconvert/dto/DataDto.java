@@ -1,6 +1,7 @@
 package cn.sleepybear.fileconvert.dto;
 
 import cn.sleepybear.fileconvert.utils.CommonUtil;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
 
@@ -16,6 +17,7 @@ import java.util.stream.Collectors;
  * @date 2023/02/10 15:01
  */
 @Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class DataDto implements Serializable {
     @Serial
     private static final long serialVersionUID = 5059542280353771569L;

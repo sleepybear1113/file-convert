@@ -1,5 +1,6 @@
 package cn.sleepybear.fileconvert.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
 /**
@@ -9,6 +10,7 @@ import lombok.Data;
  * @date 2023/06/21 15:05
  */
 @Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class PageInfoDto {
     private Integer rowCount;
     private Integer totalCount;

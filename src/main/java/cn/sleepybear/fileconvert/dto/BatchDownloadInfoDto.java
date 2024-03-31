@@ -1,6 +1,7 @@
 package cn.sleepybear.fileconvert.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
 
@@ -16,6 +17,7 @@ import java.util.List;
  * @date 2023/06/22 22:40
  */
 @Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class BatchDownloadInfoDto implements Serializable {
     @Serial
     private static final long serialVersionUID = -487973458571449579L;

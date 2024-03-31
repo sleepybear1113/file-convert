@@ -9,6 +9,7 @@ import cn.sleepybear.fileconvert.exception.FrontException;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 /**
@@ -28,7 +29,7 @@ public class ProcessDataLogic {
     @Resource
     private ZipLogic zipLogic;
 
-    public TotalDataDto processData(FileStreamDto fileStreamDto, Long expireTime) {
+    public TotalDataDto processData(FileStreamDto fileStreamDto, Long expireTime, String id) {
         if (fileStreamDto == null) {
             return null;
         }
@@ -65,6 +66,21 @@ public class ProcessDataLogic {
         }
 
         log.info("id = {}，总处理耗时 = {}ms", fileStreamDto.getId(), System.currentTimeMillis() - start);
+
+        if (StringUtils.contains(id, "@")) {
+            // 有 id 的话，那么走合并的途径，将数据合并到原有的 id 中
+            String[] split = id.split("@");
+            TotalDataDto totalDataDtoOld = GlobalVariable.DATA_TOTAL_CACHER.get(split[0]);
+            if (totalDataDtoOld != null) {
+                // 如果 id 能够查到缓存中有原有数据的话，那么走合并的途径，将数据合并到原有的 id 中，并插入至最前
+                totalDataDtoOld.add(totalDataDto, 0);
+                // 新导入的数据全部在旧的里面了，那么返回旧的就行了
+                int newlyAddedCount = totalDataDto.getList().size();
+                totalDataDto = totalDataDtoOld;
+                totalDataDto.setNewlyAddedCount(newlyAddedCount);
+                log.info("id = {}，合并至旧 TotalDataDto，新增共计 = {}", fileStreamDto.getId(), newlyAddedCount);
+            }
+        }
 
         GlobalVariable.DATA_TOTAL_CACHER.set(totalDataDto.getId(), totalDataDto, expireTime);
         return totalDataDto;

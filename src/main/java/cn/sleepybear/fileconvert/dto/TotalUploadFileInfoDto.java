@@ -1,5 +1,6 @@
 package cn.sleepybear.fileconvert.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
 
@@ -15,6 +16,7 @@ import java.util.List;
  * @date 2023/08/22 19:01
  */
 @Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class TotalUploadFileInfoDto implements Serializable {
     @Serial
     private static final long serialVersionUID = -7882861370105201133L;
@@ -22,6 +24,8 @@ public class TotalUploadFileInfoDto implements Serializable {
     private String totalDataId;
     private String filename;
     private List<UploadFileInfoDto> uploadFileInfoDtoList = new ArrayList<>();
+
+    private Integer newlyAddedCount;
 
     public void add(UploadFileInfoDto uploadFileInfoDto) {
         if (uploadFileInfoDtoList == null) {
@@ -47,6 +51,10 @@ public class TotalUploadFileInfoDto implements Serializable {
 
         for (int i = 0; i < totalUploadFileInfoDto.getUploadFileInfoDtoList().size(); i++) {
             totalUploadFileInfoDto.getUploadFileInfoDtoList().get(i).setId(i);
+        }
+
+        if (totalDataDto.getNewlyAddedCount() != null) {
+            totalUploadFileInfoDto.setNewlyAddedCount(totalDataDto.getNewlyAddedCount());
         }
         return totalUploadFileInfoDto;
     }

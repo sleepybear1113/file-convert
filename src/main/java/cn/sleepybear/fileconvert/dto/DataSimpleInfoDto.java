@@ -1,5 +1,6 @@
 package cn.sleepybear.fileconvert.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
 import java.io.Serial;
@@ -13,6 +14,7 @@ import java.util.List;
  * @date 2023/02/10 10:03
  */
 @Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class DataSimpleInfoDto implements Serializable {
     @Serial
     private static final long serialVersionUID = -628512357448553852L;

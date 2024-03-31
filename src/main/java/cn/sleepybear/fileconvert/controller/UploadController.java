@@ -27,7 +27,7 @@ public class UploadController {
     private UploadLogic uploadLogic;
 
     @RequestMapping("/upload/file")
-    public TotalUploadFileInfoDto upload(MultipartFile file, Boolean deleteAfterUpload, Integer expireTimeMinutes) {
+    public TotalUploadFileInfoDto upload(MultipartFile file, Boolean deleteAfterUpload, Integer expireTimeMinutes, String id) {
         if (file == null || file.isEmpty()) {
             throw new FrontException("未选择文件！");
         }
@@ -35,7 +35,7 @@ public class UploadController {
             deleteAfterUpload = false;
         }
 
-        return uploadLogic.uploadFile(file, null, deleteAfterUpload, expireTimeMinutes);
+        return uploadLogic.uploadFile(file, null, deleteAfterUpload, expireTimeMinutes, id);
     }
 
     public static void main(String[] args) {

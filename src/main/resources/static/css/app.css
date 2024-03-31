@@ -1,0 +1,39 @@
+body {
+    height: 98vh;
+}
+
+.text-center {
+    text-align: center;
+}
+
+#main {
+    min-height: 98vh;
+    width: 95vw;
+    position: relative;
+}
+
+.dragging-over * {
+    pointer-events: none;
+}
+
+#uploadMask {
+    min-height: 98%;
+    width: 95vw;
+    background-color: rgba(96, 212, 255, 0.2);
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 100;
+    padding: 100px;
+    border: 2px dashed black;
+    border-radius: 30px;
+}
+
+.num-input {
+    width: 90px;
+}
+
+thead {
+    font-weight: bold;
+    background-color: #f2f2f2;
+}

@@ -3,6 +3,130 @@ class BasicInfoDto {
         this.version = props.version;
         this.acceptMaxFileSize = props.acceptMaxFileSize;
     }
+
+    default() {
+        return new BasicInfoDto({
+            version: "",
+            acceptMaxFileSize: 1024 * 1024 * 50,
+        });
+
+    }
+}
+
+class BasicSetting {
+    constructor(props = {}) {
+        this.multiFileMerge = props.multiFileMerge;
+        this.expireTimeMinutes = props.expireTimeMinutes;
+        this.deleteAfterUpload = props.deleteAfterUpload;
+    }
+
+    default() {
+        return new BasicSetting({
+            multiFileMerge: false,
+            expireTimeMinutes: 60,
+            deleteAfterUpload: true
+        });
+    }
+}
+
+class DragMaskStatus {
+    constructor(props = {}) {
+        this.lastDragEnter = props.lastDragEnter;
+        this.showUploadMask = props.showUploadMask;
+    }
+
+    default() {
+        return new DragMaskStatus({
+            lastDragEnter: null,
+            showUploadMask: false
+        });
+    }
+}
+
+class UploadingStatus {
+    constructor(props = {}) {
+        this.fileUploading = props.fileUploading;
+        this.fileUploadPercent = props.fileUploadPercent;
+    }
+
+    default() {
+        return new UploadingStatus({
+            uploading: false,
+            fileUploadPercent: 0,
+        });
+    }
+}
+
+class FileStatus {
+    constructor(props = {}) {
+        this.inputFullId = props.inputFullId;
+        this.selectedFileName = props.selectedFileName;
+    }
+
+    default() {
+        return new DataSimpleInfoDto({
+            inputFullId: "",
+            selectedFileName: ""
+        });
+    }
+}
+
+class ExportStatus {
+    constructor(props = {}) {
+        this.exportStart = props.exportStart;
+        this.exportEnd = props.exportEnd;
+        this.chooseAll = props.chooseAll;
+        this.exporting = props.exporting;
+        this.exportKey = props.exportKey;
+        this.enableGroupByIndexes = props.enableGroupByIndexes;
+        this.enableExportZip = props.enableExportZip;
+    }
+
+    default() {
+        return new ExportStatus({
+            exportStart: 1,
+            exportEnd: 100,
+            chooseAll: true,
+            exporting: false,
+            exportKey: ""
+        });
+    }
+}
+
+class PageInfo {
+    constructor(props = {}) {
+        this.rowCount = props.rowCount;
+        this.totalCount = props.totalCount;
+        this.page = props.page;
+        this.totalPage = props.totalPage;
+        this.dataLoading = props.dataLoading;
+    }
+
+    default() {
+        return new PageInfo({
+            rowCount: 100,
+            page: 1,
+            dataLoading: false,
+        });
+    }
+}
+
+class ConfirmData {
+    constructor(props = {}) {
+        this.title = props.title;
+        this.content = props.content;
+        this.action = props.action;
+        this.data = props.data;
+    }
+
+    default() {
+        return new ConfirmData({
+            title: "",
+            content: "",
+            action: "",
+            data: {},
+        });
+    }
 }
 
 class DataSimpleInfoDto {
@@ -41,6 +165,7 @@ class TotalUploadFileInfoDto {
         this.filename = props.filename;
         this.totalDataId = props.totalDataId;
         this.uploadFileInfoDtoList = props.uploadFileInfoDtoList ? props.uploadFileInfoDtoList.map(item => new UploadFileInfoDto(item)) : [];
+        this.newlyAddedCount = props.newlyAddedCount;
     }
 }
 
@@ -109,15 +234,6 @@ class BatchDownloadInfoDto {
     }
 }
 
-class PageInfo {
-    constructor(props = {}) {
-        this.rowCount = props.rowCount;
-        this.totalCount = props.totalCount;
-        this.page = props.page;
-        this.totalPage = props.totalPage;
-    }
-}
-
 class DbfFields {
     constructor(props = {}) {
         this.dataType = props.dataType;
@@ -139,5 +255,18 @@ class ButtonExport {
     constructor(name, url) {
         this.name = name;
         this.url = url;
+    }
+
+    buildList(list) {
+        if (!list) {
+            return [];
+        }
+
+        let result = [];
+        for (let i = 0; i < list.length; i++) {
+            let item = list[i];
+            result.push(new ButtonExport(item[0], item[1]));
+        }
+        return result;
     }
 }

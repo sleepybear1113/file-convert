@@ -2,6 +2,7 @@ package cn.sleepybear.fileconvert.dto;
 
 import cn.sleepybear.fileconvert.constants.GlobalVariable;
 import cn.sleepybear.fileconvert.exception.FrontException;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -17,6 +18,7 @@ import java.util.List;
  * @date 2023/08/22 18:43
  */
 @Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class TotalDataDto implements Serializable {
     @Serial
     private static final long serialVersionUID = -2576570877144381253L;
@@ -25,7 +27,9 @@ public class TotalDataDto implements Serializable {
     private String filename;
     private List<DataDto> list;
 
-    public void add(TotalDataDto totalDataDto) {
+    private Integer newlyAddedCount;
+
+    public void add(TotalDataDto totalDataDto, Integer index) {
         if (totalDataDto == null) {
             return;
         }
@@ -40,8 +44,16 @@ public class TotalDataDto implements Serializable {
         if (list == null) {
             list = dataDtoList;
         } else {
-            list.addAll(dataDtoList);
+            if (index == null || index >= list.size()) {
+                list.addAll(dataDtoList);
+            } else {
+                list.addAll(index, dataDtoList);
+            }
         }
+    }
+
+    public void add(TotalDataDto totalDataDto) {
+        add(totalDataDto, null);
     }
 
     public DataDto getDataDto(String dataId) {
