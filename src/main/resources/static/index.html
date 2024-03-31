@@ -173,12 +173,12 @@
                     </h2>
                     <div id="panelsStayOpen-collapseOne" class="accordion-collapse collapse show">
                         <div class="accordion-body" style="flex-wrap: wrap">
-                            <button v-if="!exportStatus.enableExportZip" class="btn btn-outline-secondary"
+                            <button v-if="!exportStatus.enableExportZip && !exportStatus.mergeDataList" class="btn btn-outline-secondary"
                                     :class="info.dataChecked? 'active': ''"
                                     v-for="info in totalUploadFileInfoDto.uploadFileInfoDtoList"
                                     @click="changeFileData(info)">{{info.filename}}
                             </button>
-                            <button v-if="exportStatus.enableExportZip" class="btn btn-outline-secondary zip-style"
+                            <button v-if="exportStatus.enableExportZip || exportStatus.mergeDataList" class="btn btn-outline-secondary zip-style"
                                     :class="info.zipChecked? 'active': ''" data-bs-toggle="button"
                                     v-for="info in totalUploadFileInfoDto.uploadFileInfoDtoList"
                                     @click="info.zipChecked = !info.checked">{{info.filename}}
@@ -189,6 +189,11 @@
                             <label class="input-group-text">
                                 勾选导出压缩包
                                 <input class="form-check-input" type="checkbox" v-model="exportStatus.enableExportZip">
+                            </label>
+
+                            <label class="input-group-text">
+                                合并所有列导出一个文件
+                                <input class="form-check-input" type="checkbox" v-model="exportStatus.mergeDataList">
                             </label>
                         </div>
                         <hr>
@@ -302,8 +307,9 @@
                             <td class="text-nowrap">文件分组</td>
                             <template v-for="(head, index) in dataDto.heads">
                                 <td v-if="head.shown">
-                                    <label><input type="checkbox" class="form-check-input"
-                                                  v-model="head.groupByChecked"></label>
+                                    <label>
+                                        <input type="checkbox" class="form-check-input" v-model="head.groupByChecked">
+                                    </label>
                                 </td>
                             </template>
                         </tr>

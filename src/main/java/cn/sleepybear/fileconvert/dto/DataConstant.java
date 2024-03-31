@@ -2,6 +2,7 @@ package cn.sleepybear.fileconvert.dto;
 
 import lombok.Getter;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -37,6 +38,25 @@ public class DataConstant {
                 if (dataType.getType().equals(type)) {
                     return dataType;
                 }
+            }
+            return UNSUPPORTED;
+        }
+
+        public static DataType getDataTypeByClass(Class<?> c) {
+            if (c == Integer.class || c == Long.class) {
+                return NUMBER;
+            }
+            if (c == Double.class || c == Float.class) {
+                return DECIMAL;
+            }
+            if (c == Boolean.class) {
+                return BOOL;
+            }
+            if (c == String.class) {
+                return TEXT;
+            }
+            if (c == Date.class) {
+                return DATE;
             }
             return UNSUPPORTED;
         }

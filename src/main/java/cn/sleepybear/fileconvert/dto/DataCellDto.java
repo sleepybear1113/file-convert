@@ -2,6 +2,7 @@ package cn.sleepybear.fileconvert.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -14,6 +15,7 @@ import java.util.List;
  * @date 2023/02/10 10:05
  */
 @Data
+@NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class DataCellDto implements Serializable {
     @Serial
@@ -36,7 +38,18 @@ public class DataCellDto implements Serializable {
      */
     private Integer lengthByte;
 
+    /**
+     * 小数位数
+     */
+    private Integer decimalCount;
+
     private Boolean fixed;
 
     private List<Integer> acceptDataTypes;
+
+    public DataCellDto(Object value, Integer length, Integer lengthByte) {
+        this.value = value;
+        this.length = length;
+        this.lengthByte = lengthByte;
+    }
 }

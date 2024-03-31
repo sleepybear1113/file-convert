@@ -80,6 +80,7 @@ class ExportStatus {
         this.exportKey = props.exportKey;
         this.enableGroupByIndexes = props.enableGroupByIndexes;
         this.enableExportZip = props.enableExportZip;
+        this.mergeDataList = props.mergeDataList;
     }
 
     default() {

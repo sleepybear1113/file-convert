@@ -55,6 +55,9 @@ public class DbfWriter {
                 field.setLength(8);
             } else {
                 field.setLength(head.getLengthByte() == 0 ? 10 : head.getLengthByte());
+                if (DBFDataType.NUMERIC.equals(dbfDataType)) {
+                    field.setDecimalCount(head.getDecimalCount());
+                }
             }
             dbfFieldList.add(field);
         }

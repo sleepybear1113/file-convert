@@ -285,7 +285,7 @@ let app = new Vue({
             let url = "/export/preProcessExport";
 
             let dataIdList = this.fileStatus.inputFullId;
-            if (this.exportStatus.enableExportZip) {
+            if (this.exportStatus.enableExportZip || this.exportStatus.mergeDataList) {
                 if (this.totalUploadFileInfoDto.uploadFileInfoDtoList && this.totalUploadFileInfoDto.uploadFileInfoDtoList.length > 0) {
                     let uploadFileInfoDtoList = this.totalUploadFileInfoDto.uploadFileInfoDtoList;
                     let dataListArr = [];
@@ -307,6 +307,7 @@ let app = new Vue({
                     exportStart: this.exportStatus.exportStart,
                     exportEnd: this.exportStatus.exportEnd,
                     chooseAll: this.exportStatus.chooseAll,
+                    mergeDataList: this.exportStatus.mergeDataList,
                 }
             };
             axios.get(url, params).then((res) => {
@@ -354,7 +355,6 @@ let app = new Vue({
                 if (exportKey != null && exportKey.length > 0) {
                     let downloadUrl = this.downloadPrefix + exportKey;
                     this.exportStatus.exportKey = exportKey;
-                    // document.getElementById("download-ele-a").click();
                     this.downloadUrl(downloadUrl);
                 }
                 this.exportStatus.exporting = false;

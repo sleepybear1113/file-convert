@@ -43,9 +43,10 @@ public class ExportLogic {
      * @param exportStart    exportStart
      * @param exportEnd      exportEnd
      * @param chooseAll      chooseAll
+     * @param mergeDataList  是否合并成一个文件
      * @return BatchDownloadInfoDto
      */
-    public BatchDownloadInfoDto preProcessExport(List<String> idList, List<Integer> colIndexes, List<Integer> groupByIndexes, Integer exportStart, Integer exportEnd, Boolean chooseAll) {
+    public BatchDownloadInfoDto preProcessExport(List<String> idList, List<Integer> colIndexes, List<Integer> groupByIndexes, Integer exportStart, Integer exportEnd, Boolean chooseAll, Boolean mergeDataList) {
         if (CollectionUtils.isEmpty(idList)) {
             throw new FrontException("未选择导出文件！");
         }
@@ -83,9 +84,19 @@ public class ExportLogic {
             throw new FrontException("导出数据为空！");
         }
 
+        if (Boolean.TRUE.equals(mergeDataList)) {
+            // 如果是合并的话，那么只保留一个
+            DataDto dataDto = DataDto.mergeDataDtoList(dataDtoList);
+            if (dataDto == null) {
+                throw new FrontException("导出数据为空！");
+            }
+            dataDtoList = new ArrayList<>();
+            dataDtoList.add(dataDto);
+        }
+
         BatchDownloadInfoDto batchDownloadInfoDto = new BatchDownloadInfoDto();
         DataDto dataDto = dataDtoList.getFirst();
-        if (CollectionUtils.size(idList) == 1) {
+        if (CollectionUtils.size(dataDtoList) == 1) {
             // 如果只有一组数据, 那么可以进行分组导出
             dataDtoList = dataDto.splitByColName(remainGroupByIndexes);
             batchDownloadInfoDto.setGroupByIndexes(remainGroupByIndexes);
