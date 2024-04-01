@@ -1,5 +1,7 @@
 package cn.sleepybear.fileconvert.dto;
 
+import cn.sleepybear.fileconvert.convert.Constants;
+import cn.sleepybear.fileconvert.convert.StringRecords;
 import cn.sleepybear.fileconvert.convert.dbf.DbfConverter;
 import cn.sleepybear.fileconvert.utils.CommonUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -440,6 +442,15 @@ public class DataDto implements Serializable {
             }
         }
         return colNameList;
+    }
+
+    public static DataDto buildFromFileStreamDto(FileStreamDto fileStreamDto) {
+        DataDto dataDto = new DataDto();
+        dataDto.setFilename(fileStreamDto.getOriginalFilename());
+        dataDto.setId(fileStreamDto.getId());
+        dataDto.setCreateTime(fileStreamDto.getCreateTime());
+        dataDto.setExpireTime(fileStreamDto.getExpireTime());
+        return dataDto;
     }
 
     private static DataCellDto determineColumnType(List<DataCellDto> columnData) {

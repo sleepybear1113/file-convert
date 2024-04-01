@@ -306,7 +306,7 @@
                         <tr v-show="exportStatus.enableGroupByIndexes">
                             <td class="text-nowrap">文件分组</td>
                             <template v-for="(head, index) in dataDto.heads">
-                                <td v-if="head.shown">
+                                <td v-if="head.shown" class="text-center">
                                     <label>
                                         <input type="checkbox" class="form-check-input" v-model="head.groupByChecked">
                                     </label>

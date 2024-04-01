@@ -1,6 +1,5 @@
 package cn.sleepybear.fileconvert.logic;
 
-import cn.sleepybear.fileconvert.config.MyConfig;
 import cn.sleepybear.fileconvert.constants.GlobalVariable;
 import cn.sleepybear.fileconvert.dto.*;
 import cn.sleepybear.fileconvert.exception.FrontException;
@@ -27,8 +26,6 @@ import java.util.Set;
 @Component
 @Slf4j
 public class ExportLogic {
-    @Resource
-    private MyConfig myConfig;
     @Resource
     private ExcelLogic excelLogic;
     @Resource
@@ -61,9 +58,9 @@ public class ExportLogic {
         List<Integer> fixedGroupByIndexes = CommonUtil.keepAndSetSort(groupByIndexes, integer -> integer != null && integer >= 0, Integer::compareTo);
         List<Integer> remainGroupByIndexes = new ArrayList<>();
         for (Integer fixedGroupByIndex : fixedGroupByIndexes) {
-            for (int i1 = 0; i1 < fixedColIndexes.size(); i1++) {
-                if (fixedGroupByIndex.equals(fixedColIndexes.get(i1))) {
-                    remainGroupByIndexes.add(i1);
+            for (int i = 0; i < fixedColIndexes.size(); i++) {
+                if (fixedGroupByIndex.equals(fixedColIndexes.get(i))) {
+                    remainGroupByIndexes.add(i);
                     break;
                 }
             }
@@ -115,8 +112,10 @@ public class ExportLogic {
         }
         batchDownloadInfoDto.setList(dataDtoList);
 
+        // 预处理的缓存不用太久
+        long expireTime = 1000L * 600;
         batchDownloadInfoDto.setId("batch_" + CommonUtil.getRandomStr(8));
-        GlobalVariable.BATCH_DOWNLOAD_INFO_CACHER.set(batchDownloadInfoDto.getId(), batchDownloadInfoDto, 1000L * 3600);
+        GlobalVariable.BATCH_DOWNLOAD_INFO_CACHER.set(batchDownloadInfoDto.getId(), batchDownloadInfoDto, expireTime);
         return batchDownloadInfoDto;
     }
 

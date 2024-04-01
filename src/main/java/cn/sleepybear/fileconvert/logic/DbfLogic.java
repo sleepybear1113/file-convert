@@ -31,12 +31,8 @@ public class DbfLogic extends BaseExportLogic {
         }
         DbfRecord dbfRecord = DbfConverter.parseDbfRecord(fileStreamDto.getByteArrayInputStream(), Charset.forName(DbfConverter.DEFAULT_DBF_CHARSET));
 
-        DataDto dataDto = new DataDto();
+        DataDto dataDto = DataDto.buildFromFileStreamDto(fileStreamDto);
         dataDto.setType(Constants.FileTypeEnum.DBF.getType());
-        dataDto.setFilename(fileStreamDto.getOriginalFilename());
-        dataDto.setId(fileStreamDto.getId());
-        dataDto.setCreateTime(fileStreamDto.getCreateTime());
-        dataDto.setExpireTime(fileStreamDto.getExpireTime());
 
         List<List<DataCellDto>> dataList = dbfRecord.buildDataList();
         dataDto.setDataList(dataList);

@@ -52,6 +52,8 @@ public class DbfRecord {
             dataCellDto.setValue(dbfField.getName());
             dataCellDto.setDataType(getType(dbfField.getType()).getType());
             dataCellDto.setLength(dbfField.getLength());
+            dataCellDto.setLengthByte(dbfField.getLength());
+            dataCellDto.setDecimalCount(dbfField.getDecimalCount());
             heads.add(dataCellDto);
         }
         return heads;

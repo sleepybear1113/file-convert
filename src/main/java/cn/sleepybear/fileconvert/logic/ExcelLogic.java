@@ -58,16 +58,12 @@ public class ExcelLogic extends BaseExportLogic {
         }
         stringRecords.build();
 
-        DataDto dataDto = new DataDto();
+        DataDto dataDto = DataDto.buildFromFileStreamDto(fileStreamDto);
         dataDto.setType(fileTypeEnum.getType());
-        dataDto.setFilename(fileStreamDto.getOriginalFilename());
-        dataDto.setId(fileStreamDto.getId());
-        dataDto.setCreateTime(fileStreamDto.getCreateTime());
-        dataDto.setExpireTime(fileStreamDto.getExpireTime());
-
         dataDto.setHeads(stringRecords.getDataCellHeads());
         dataDto.setDataList(stringRecords.getDataCellRecords());
 
+        dataDto.buildHeadDataType();
         dataDto.buildFixedHeads();
         dataDto.buildColCounts();
 
