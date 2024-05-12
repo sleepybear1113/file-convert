@@ -30,5 +30,6 @@ public class SystemController {
 
     @RequestMapping("/test")
     public void test() {
+        // test
     }
 }

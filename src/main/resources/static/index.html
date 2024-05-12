@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <title>文件转换 - By Sleepybear</title>
 </head>
-<script src="lib/vue.js"></script>
-<script src="lib/axios.min.js"></script>
-<link href="lib/bootstrap@5.3.1_dist_css_bootstrap.min.css" rel="stylesheet">
-<script src="lib/bootstrap@5.3.1_dist_js_bootstrap.bundle.min.js"></script>
+<script src="lib/vue.2.7.16.min.js"></script>
+<script src="lib/axios.1.6.8.min.js"></script>
+<link href="lib/bootstrap@5.3.3.min.css" rel="stylesheet">
+<script src="lib/bootstrap@5.3.3.min.js"></script>
 
 <script src="js/axios-config.js?v=1.0.6.1"></script>
 <script src="js/objects.js?vVvVvV=1.0.6.1"></script>
@@ -34,16 +34,16 @@
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 class="modal-title" id="confirmModalLabel">{{confirmData.title}}</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <button type="button" class="btn-close btn-sm" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
                             <p>{{confirmData.content}}</p>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal"
                                     @click="confirmAction(confirmData.action, false, confirmData.data)">取消
                             </button>
-                            <button type="button" class="btn btn-primary" data-bs-dismiss="modal"
+                            <button type="button" class="btn btn-primary btn-sm" data-bs-dismiss="modal"
                                     @click="confirmAction(confirmData.action, true, confirmData.data)">确认
                             </button>
                         </div>
@@ -68,11 +68,11 @@
                 <!-- 上传 input -->
                 <div class="col-md-4 d-flex">
                     <label class="input-group-text input-group-sm mb-3">
-                        <button class="btn btn-outline-secondary" v-if="!uploadingStatus.fileUploading"
+                        <button class="btn btn-outline-secondary btn-sm" v-if="!uploadingStatus.fileUploading"
                                 @click="createInputUpload">
                             浏览
                         </button>
-                        <button class="btn btn-secondary" type="button" disabled v-if="uploadingStatus.fileUploading">
+                        <button class="btn btn-secondary btn-sm" type="button" disabled v-if="uploadingStatus.fileUploading">
                             <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                             <span>{{uploadingStatus.fileUploadPercent >= 100 ? "解析中..." : `上传中...(${uploadingStatus.fileUploadPercent}%)`}}</span>
                         </button>
@@ -96,7 +96,7 @@
                         文件编号：
                         <input class="form-control" v-model="fileStatus.inputFullId"
                                @keyup.enter="getDataList(1, true)">
-                        <button class="btn btn-outline-secondary" @click="getDataList(1, true)"
+                        <button class="btn btn-outline-secondary btn-sm" @click="getDataList(1, true)"
                                 :disabled="pageInfo.dataLoading">
                             获取数据
                         </button>
@@ -113,7 +113,7 @@
                     <div class="form-check">
                         <label>
                             <input class="form-check-input" type="checkbox" checked disabled>
-                            <label class="input-group-text" for="expireTime">
+                            <label class="input-group-text input-group-sm" for="expireTime">
                                 数据保存内存中时间
                                 <input type="number" id="expireTime" class="form-control"
                                        v-model="basicSetting.expireTimeMinutes"
@@ -127,13 +127,13 @@
 
             <!-- 文件信息组件 -->
             <div class="row" v-if="dataDto && dataDto.dataList && dataDto.dataList.length">
-                <div class="col-md-12 d-flex">
+                <div class="col-md-12 d-flex input-group-sm">
                     <span class="input-group-text">
                         文件名：
-                        <span class="input-group-text" v-if="dataDto.filename">
+                        <span class="input-group-text input-group-sm" v-if="dataDto.filename">
                             {{dataDto.filename}}
                         </span>
-                        <button class="btn btn-outline-secondary" @click="deleteByDataId">从内存中删除</button>
+                        <button class="btn btn-outline-secondary btn-sm" @click="deleteByDataId">从内存中删除</button>
                     </span>
                 </div>
 
@@ -145,14 +145,14 @@
                 </div>
 
                 <div class="col-md-12 d-flex">
-                    <span class="input-group-text">字段列表：</span>
-                    <div class="input-group-text row">
-                        <button class="btn btn-outline-secondary" @click="changeColDisplay(true)">全部显示</button>
-                        <button class="btn btn-outline-secondary" @click="changeColDisplay(false)">全部隐藏</button>
-                        <button class="btn btn-outline-secondary" @click="changeColDisplay()">反选</button>
+                    <span class="input-group-text col-md-1">字段列表：</span>
+                    <div class="input-group-text row col-md-1">
+                        <button class="btn btn-outline-secondary btn-sm" @click="changeColDisplay(true)">全部显示</button>
+                        <button class="btn btn-outline-secondary btn-sm" @click="changeColDisplay(false)">全部隐藏</button>
+                        <button class="btn btn-outline-secondary btn-sm" @click="changeColDisplay()">反选</button>
                     </div>
-                    <div class="input-group-text gap-1" style="flex-wrap: wrap" v-if="dataDto.heads">
-                        <button class="btn btn-outline-secondary" :class="head.shown? 'active': ''"
+                    <div class="input-group-text gap-1 col-md-10" style="flex-wrap: wrap" v-if="dataDto.heads">
+                        <button class="btn btn-outline-secondary btn-sm" :class="head.shown? 'active': ''"
                                 data-bs-toggle="button" v-for="head in dataDto.heads" @click="head.shown = !head.shown">
                             {{head.value ? head.value : "　"}}
                         </button>
@@ -165,7 +165,7 @@
                  v-if="totalUploadFileInfoDto.uploadFileInfoDtoList && totalUploadFileInfoDto.uploadFileInfoDtoList.length > 1">
                 <div class="accordion-item">
                     <h2 class="accordion-header">
-                        <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                        <button class="accordion-button btn-sm" type="button" data-bs-toggle="collapse"
                                 data-bs-target="#panelsStayOpen-collapseOne" aria-expanded="true"
                                 aria-controls="panelsStayOpen-collapseOne">
                             展开选择其他文件
@@ -173,12 +173,12 @@
                     </h2>
                     <div id="panelsStayOpen-collapseOne" class="accordion-collapse collapse show">
                         <div class="accordion-body" style="flex-wrap: wrap">
-                            <button v-if="!exportStatus.enableExportZip && !exportStatus.mergeDataList" class="btn btn-outline-secondary"
+                            <button v-if="!exportStatus.enableExportZip && !exportStatus.mergeDataList" class="btn btn-outline-secondary btn-sm"
                                     :class="info.dataChecked? 'active': ''"
                                     v-for="info in totalUploadFileInfoDto.uploadFileInfoDtoList"
                                     @click="changeFileData(info)">{{info.filename}}
                             </button>
-                            <button v-if="exportStatus.enableExportZip || exportStatus.mergeDataList" class="btn btn-outline-secondary zip-style"
+                            <button v-if="exportStatus.enableExportZip || exportStatus.mergeDataList" class="btn btn-outline-secondary btn-sm zip-style"
                                     :class="info.zipChecked? 'active': ''" data-bs-toggle="button"
                                     v-for="info in totalUploadFileInfoDto.uploadFileInfoDtoList"
                                     @click="info.zipChecked = !info.checked">{{info.filename}}
@@ -203,24 +203,24 @@
 
             <!-- 文件导出组件 -->
             <div v-if="dataDto && dataDto.dataList && dataDto.dataList.length">
-                <button v-if="!exportStatus.exporting" class="btn btn-outline-secondary"
+                <button v-if="!exportStatus.exporting" class="btn btn-outline-secondary btn-sm"
                         v-show="!exportStatus.enableGroupByIndexes && !exportStatus.enableExportZip"
                         v-for="(button, index) in exportButtonList"
                         @click="preProcessExport(button.url)" :disabled="exportStatus.exporting">{{button.name}}
                 </button>
-                <button v-if="!exportStatus.exporting" class="btn btn-outline-secondary"
+                <button v-if="!exportStatus.exporting" class="btn btn-outline-secondary btn-sm"
                         v-show="exportStatus.enableGroupByIndexes || exportStatus.enableExportZip"
                         v-for="(button, index) in exportZipButtonList"
                         @click="preProcessExport(button.url)" :disabled="exportStatus.exporting">{{button.name}}
                 </button>
-                <button class="btn btn-secondary" type="button" disabled v-if="exportStatus.exporting">
+                <button class="btn btn-secondary btn-sm" type="button" disabled v-if="exportStatus.exporting">
                     <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                     <span>文件处理中...</span>
                 </button>
 
                 <a id="download-ele-a" v-show="exportStatus.exportKey"
                    :href="downloadPrefix + exportStatus.exportKey">没有自动弹出下载？点击这里重试(1小时后过期删除)</a>
-                <button class="btn btn-outline-secondary" v-show="exportStatus.exportKey"
+                <button class="btn btn-outline-secondary btn-sm" v-show="exportStatus.exportKey"
                         @click="deleteDownloadFile(exportStatus.exportKey)">
                     从服务器上立即清除文件缓存
                 </button>
@@ -274,25 +274,25 @@
             <div v-for="ii in [0, 1]">
                 <!-- 分页组件 -->
                 <div class="d-flex" v-if="dataDto && dataDto.dataList && dataDto.dataList.length">
-                    <label class="input-group-text">
+                    <label class="input-group-text input-group-sm">
                         每页数据行数<input type="number" v-model="pageInfo.rowCount" class="form-control num-input">
                     </label>
-                    <button class="btn btn-outline-secondary" @click="changePage(0)" :disabled="pageInfo.dataLoading">首页
+                    <button class="btn btn-outline-secondary btn-sm" @click="changePage(0)" :disabled="pageInfo.dataLoading">首页
                     </button>
-                    <button class="btn btn-outline-secondary" @click="changePage(-1)" :disabled="pageInfo.dataLoading">
+                    <button class="btn btn-outline-secondary btn-sm" @click="changePage(-1)" :disabled="pageInfo.dataLoading">
                         上一页
                     </button>
-                    <label class="input-group-text" style="display: flex;">
+                    <label class="input-group-text input-group-sm" style="display: flex;">
                         页码
                         <input class="form-control num-input" type="number" v-model="pageInfo.page"
                                @keyup.enter="getDataList(pageInfo.page)">
                     </label>
-                    <span class="input-group-text"
+                    <span class="input-group-text input-group-sm"
                           v-if="dataDto && dataDto.pageInfo && dataDto.pageInfo.totalPage">总共{{dataDto.pageInfo.totalPage}}页</span>
-                    <button class="btn btn-outline-secondary" @click="changePage(1)" :disabled="pageInfo.dataLoading">
+                    <button class="btn btn-outline-secondary btn-sm" @click="changePage(1)" :disabled="pageInfo.dataLoading">
                         下一页
                     </button>
-                    <button class="btn btn-outline-secondary" @click="getDataList(pageInfo.page)"
+                    <button class="btn btn-outline-secondary btn-sm" @click="getDataList(pageInfo.page)"
                             :disabled="pageInfo.dataLoading">获取数据
                     </button>
                 </div>
@@ -377,7 +377,7 @@
                     <div class="toast-header">
                         <strong class="me-auto">提示</strong>
                         <small>{{parseTimeToStr(new Date().getTime())}}</small>
-                        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                        <button type="button" class="btn-close btn-sm" data-bs-dismiss="toast" aria-label="Close"></button>
                     </div>
                     <div class="toast-body">
                         {{toastMsg}}
@@ -396,6 +396,6 @@
     </div>
 </div>
 
-<script src="js/app.js?v=1.0.6.1"></script>
+<script src="js/app.js?v=1.0.6.2"></script>
 </body>
 </html>

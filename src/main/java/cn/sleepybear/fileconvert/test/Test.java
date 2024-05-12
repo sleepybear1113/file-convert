@@ -17,9 +17,10 @@ import java.util.*;
  */
 public class Test {
     public static void main(String[] args) throws Exception {
-        System.out.println(calculateBytes("嘉兴市第一中学123", "GBK"));
-        System.out.println(calculateBytes("嘉兴市第一中学123", "UTF-8"));
-        System.out.println(Long.parseLong("00123"));
+        String ss = "4年前右小指外伤手术（屈肌腱重建），恢复良好。功能无影响。";
+        System.out.println(ss);
+        System.out.println(ss.length());
+        System.out.println(calculateBytes(ss, "GBK"));
     }
 
     public static void testZip() {

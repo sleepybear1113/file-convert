@@ -1,7 +1,5 @@
 package cn.sleepybear.fileconvert.dto;
 
-import cn.sleepybear.fileconvert.convert.Constants;
-import cn.sleepybear.fileconvert.convert.StringRecords;
 import cn.sleepybear.fileconvert.convert.dbf.DbfConverter;
 import cn.sleepybear.fileconvert.utils.CommonUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -552,7 +550,6 @@ public class DataDto implements Serializable {
         boolean isDate = columnDataStr.stream().allMatch(s -> {
             try {
                 if (StringUtils.isNotEmpty(s)) {
-                    // noinspection ResultOfMethodCallIgnored
                     LocalDate.parse(s);
                 }
                 return true;
